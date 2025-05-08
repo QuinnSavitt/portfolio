@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spirograph</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0d1117;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    canvas {
+      background: #111;
+      margin-top: 10px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    input[type=range] {
+      width: 120px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #444;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Spirograph</h1>
+
+  <div class="controls">
+    <div class="control">
+      <label>Inner Radius</label>
+      <input type="range" id="innerRadius" min="10" max="200" value="100">
+    </div>
+    <div class="control">
+      <label>Outer Radius</label>
+      <input type="range" id="outerRadius" min="10" max="200" value="50">
+    </div>
+    <div class="control">
+      <label>Pen Offset</label>
+      <input type="range" id="penOffset" min="1" max="100" value="40">
+    </div>
+    <div class="control">
+      <label>Speed</label>
+      <input type="range" id="speed" min="0.01" max="0.1" step="0.01" value="0.02">
+    </div>
+  </div>
+
+  <button onclick="clearCanvas()">Clear</button>
+  <button id="randomBtn" onclick="goToRandomPage(true)">Take Me Somewhere Else Fun</button>
+
+  <canvas id="spiro" width="800" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById('spiro');
+    const ctx = canvas.getContext('2d');
+
+    let angle = 0;
+    let hue = 0;
+    let lastX = null, lastY = null;
+
+    function getParams() {
+      return {
+        R: parseFloat(innerRadius.value),
+        r: parseFloat(outerRadius.value),
+        d: parseFloat(penOffset.value),
+        speed: parseFloat(speed.value)
+      };
+    }
+
+    function drawSpirograph() {
+      requestAnimationFrame(drawSpirograph);
+
+      const { R, r, d, speed } = getParams();
+
+      angle += speed;
+
+      // Hypotrochoid parametric equations
+      const x = (R - r) * Math.cos(angle) + d * Math.cos(((R - r) / r) * angle);
+      const y = (R - r) * Math.sin(angle) - d * Math.sin(((R - r) / r) * angle);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      const drawX = centerX + x;
+      const drawY = centerY + y;
+
+      ctx.strokeStyle = `hsl(${hue}, 100%, 60%)`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (lastX !== null && lastY !== null) {
+        ctx.moveTo(lastX, lastY);
+      } else {
+        ctx.moveTo(drawX, drawY);
+      }
+      ctx.lineTo(drawX, drawY);
+      ctx.stroke();
+
+      lastX = drawX;
+      lastY = drawY;
+      hue = (hue + 1) % 360;
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      lastX = null;
+      lastY = null;
+    }
+
+    drawSpirograph();
+  </script>
+
+  <script>
+    const funPages = [
+      'visualizer.html',
+      'algs.html',
+      'spirograph.html'
+      // Add more pages here as needed
+    ];
+
+    function goToRandomPage(excludeCurrent = true) {
+      const current = window.location.pathname.split('/').pop();
+      const choices = excludeCurrent
+        ? funPages.filter(page => page !== current)
+        : funPages;
+
+      if (choices.length === 0) return;
+      const random = choices[Math.floor(Math.random() * choices.length)];
+      window.location.href = random;
+    }
+  </script>
+</body>
+</html>

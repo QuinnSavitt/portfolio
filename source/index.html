@@ -1,0 +1,145 @@
+@@include('header.htm')
+
+<main class="site-wrapper">
+  <div class="pt-table">
+    <div class="pt-tablecell page-home relative" style="background-image: url('images/banner.jpg');">
+      <div class="overlay"></div>
+
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12 col-md-offset-1 col-md-10 col-lg-offset-2 col-lg-8">
+            <div class="page-title home text-center">
+              <img src="images/QuinnSavitt.png" style="width: 600px; height: auto;" alt="Quinn Savitt" />
+              <p>Software Engineer, CS Honors Research at University of Maryland</p>
+              <p>Website Under Construction</p>
+            </div>
+
+            <div class="hexagon-menu clear">
+              <div class="hexagon-item">
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <a href="about.html" class="hex-content">
+                  <span class="hex-content-inner">
+                    <span class="icon"><i class="tf-dial"></i></span>
+                    <span class="title">About</span>
+                  </span>
+                  <svg viewBox="0 0 173.20508075688772 200" height="200" width="174">
+                    <path d="M86.6 0L173.2 50V150L86.6 200L0 150V50Z" fill="#1e2530"></path>
+                  </svg>
+                </a>
+              </div>
+
+              <div class="hexagon-item">
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <a href="projects.html" class="hex-content">
+                  <span class="hex-content-inner">
+                    <span class="icon"><i class="tf-profile-male"></i></span>
+                    <span class="title">Projects</span>
+                  </span>
+                  <svg viewBox="0 0 173.20508075688772 200" height="200" width="174">
+                    <path d="M86.6 0L173.2 50V150L86.6 200L0 150V50Z" fill="#1e2530"></path>
+                  </svg>
+                </a>
+              </div>
+
+              <div class="hexagon-item">
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <a href="proofs.html" class="hex-content">
+                  <span class="hex-content-inner">
+                    <span class="icon"><i class="tf-tools-2"></i></span>
+                    <span class="title">Proofs</span>
+                  </span>
+                  <svg viewBox="0 0 173.20508075688772 200" height="200" width="174">
+                    <path d="M86.6 0L173.2 50V150L86.6 200L0 150V50Z" fill="#1e2530"></path>
+                  </svg>
+                </a>
+              </div>
+
+              <div class="hexagon-item">
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <a href="publications.html" class="hex-content">
+                  <span class="hex-content-inner">
+                    <span class="icon"><i class="tf-tools"></i></span>
+                    <span class="title">Publications</span>
+                  </span>
+                  <svg viewBox="0 0 173.20508075688772 200" height="200" width="174">
+                    <path d="M86.6 0L173.2 50V150L86.6 200L0 150V50Z" fill="#1e2530"></path>
+                  </svg>
+                </a>
+              </div>
+
+              <div class="hexagon-item">
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <a href="resume.html" class="hex-content">
+                  <span class="hex-content-inner">
+                    <span class="icon"><i class="tf-briefcase2"></i></span>
+                    <span class="title">Resume</span>
+                  </span>
+                  <svg viewBox="0 0 173.20508075688772 200" height="200" width="174">
+                    <path d="M86.6 0L173.2 50V150L86.6 200L0 150V50Z" fill="#1e2530"></path>
+                  </svg>
+                </a>
+              </div>
+
+              <div class="hexagon-item">
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <a href="contact.html" class="hex-content">
+                  <span class="hex-content-inner">
+                    <span class="icon"><i class="tf-chat"></i></span>
+                    <span class="title">Contact</span>
+                  </span>
+                  <svg viewBox="0 0 173.20508075688772 200" height="200" width="174">
+                    <path d="M86.6 0L173.2 50V150L86.6 200L0 150V50Z" fill="#1e2530"></path>
+                  </svg>
+                </a>
+              </div>
+
+              <!-- FUN STUFF HEXAGON -->
+              <div class="hexagon-item">
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <div class="hex-item"><div></div><div></div><div></div></div>
+                <a href="javascript:void(0);" class="hex-content" onclick="goToRandomPage(false)">
+                  <span class="hex-content-inner">
+                    <span class="icon"><i class="tf-envelope2"></i></span>
+                    <span class="title">Fun Stuff</span>
+                  </span>
+                  <svg viewBox="0 0 173.20508075688772 200" height="200" width="174">
+                    <path d="M86.6 0L173.2 50V150L86.6 200L0 150V50Z" fill="#1e2530"></path>
+                  </svg>
+                </a>
+              </div>
+            </div> <!-- /.hexagon-menu -->
+          </div> <!-- /.col -->
+        </div> <!-- /.row -->
+      </div> <!-- /.container -->
+    </div> <!-- /.pt-tablecell -->
+  </div> <!-- /.pt-table -->
+</main> <!-- /.site-wrapper -->
+
+<!-- 🎲 Random page logic -->
+<script>
+  const funPages = [
+    'visualizer.html',
+    'algs.html',
+    'spirograph.html'
+    // Add more here as needed
+  ];
+
+  function goToRandomPage(excludeCurrent = true) {
+    const current = window.location.pathname.split('/').pop();
+    const choices = excludeCurrent
+      ? funPages.filter(page => page !== current)
+      : funPages;
+
+    if (choices.length === 0) return;
+    const random = choices[Math.floor(Math.random() * choices.length)];
+    window.location.href = random;
+  }
+</script>
+
+@@include('footer.htm')

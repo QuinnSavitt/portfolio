@@ -1,0 +1,138 @@
+@@include('header.htm')
+
+<main class="site-wrapper">
+  <div class="pt-table">
+    <div class="pt-tablecell page-contact relative">
+      <!-- .close -->
+      <a href="./" class="page-close"><i class="tf-ion-close"></i></a>
+      <!-- /.close -->
+
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12 col-md-offset-1 col-md-10 col-lg-offset-2 col-lg-8">
+            <div class="page-title text-center">
+              <h2>Get in <span class="primary">touch</span> <span class="title-bg">Contact</span></h2>
+            </div>
+          </div>
+        </div> <!-- /.row -->
+
+        <div class="row">
+          <!-- contact info block left -->
+          <div class="col-xs-12 col-sm-5 col-md-4 col-lg-3">
+            <div class="contact-block">
+              <div class="media">
+                <div class="media-left">
+                  <i class="tf-envelope2"></i>
+                </div>
+                <div class="media-body">
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- form right -->
+          <div class="col-xs-12 col-sm-7 col-md-7 col-md-offset-1 col-lg-offset-2">
+            <div class="section-title clear">
+              <h3>Send me a message</h3>
+              <span class="bar-dark"></span>
+              <span class="bar-primary"></span>
+            </div>
+
+            <form 
+              name="contact" 
+              method="POST" 
+              data-netlify="true" 
+              class="row contact-form no-gutter"
+              netlify-honeypot="bot-field"
+            >
+              <!-- Netlify bot-field for spam protection -->
+              <input type="hidden" name="form-name" value="contact">
+              <p class="hidden">
+                <label>Don’t fill this out if you’re human: <input name="bot-field"></label>
+              </p>
+
+              <div class="col-xs-12 col-sm-6">
+                <div class="input-field name">
+                  <span class="input-icon" id="name"><i class="tf-profile-male"></i></span>
+                  <input type="text" name="name" class="form-control"
+                         placeholder="Enter your name" required>
+                </div>
+              </div>
+              <div class="col-xs-12 col-sm-6">
+                <div class="input-field email">
+                  <span class="input-icon" id="email"><i class="tf-envelope2"></i></span>
+                  <input type="email" name="email" class="form-control"
+                         placeholder="Your email address" required>
+                </div>
+              </div>
+              <div class="col-xs-12">
+                <div class="input-field">
+                  <span class="input-icon" id="subject"><i class="tf-pricetags"></i></span>
+                  <input type="text" name="subject" class="form-control"
+                         placeholder="Enter the discussion title" required>
+                </div>
+              </div>
+              <div class="col-xs-12">
+                <div class="input-field message">
+                  <span class="input-icon"><i class="tf-pencil2"></i></span>
+                  <textarea name="message" id="message" class="form-control"
+                            placeholder="Write your message" required></textarea>
+                </div>
+              </div>
+              <div class="col-xs-12">
+                <div class="input-field">
+                  <span class="btn-border">
+                    <button type="submit"
+                            class="btn btn-primary btn-custom-border text-uppercase">
+                      Send Message now
+                    </button>
+                  </span>
+                </div>
+              </div>
+            </form>
+
+            <div id="form-response" class="mt-2 text-center"></div>
+
+            <script>
+            document.addEventListener("DOMContentLoaded", () => {
+              const form = document.querySelector('form[name="contact"]');
+              const responseEl = document.getElementById("form-response");
+
+              form.addEventListener("submit", evt => {
+                evt.preventDefault();
+                const data = new FormData(form);
+
+                fetch("/", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                  body: new URLSearchParams(data).toString()
+                })
+                .then(() => {
+                  responseEl.innerHTML = "<p class='text-success'>Thanks! I'll be in touch soon.</p>";
+                  form.reset();
+                })
+                .catch(err => {
+                  responseEl.innerHTML = "<p class='text-danger'>Oops! There was a problem.</p>";
+                  console.error(err);
+                });
+              });
+            });
+            </script>
+          </div>
+        </div> <!-- /.row -->
+      </div> <!-- /.container -->
+
+      <nav class="page-nav clear">
+        <div class="container">
+          <div class="flex flex-middle space-between">
+            <span class="copyright">
+              Copyright &copy; 2021, Designed &amp; Developed by
+              <a href="https://themefisher.com/">Themefisher</a>.
+            </span>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </div>
+</main>
+
+@@include('footer.htm')

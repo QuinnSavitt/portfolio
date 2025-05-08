@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sorting Soundscape</title>
+  <!-- your Bootstrap theme -->
+  <link rel="stylesheet" href="plugins/bootstrap/bootstrap.min.css">
+  <style>
+    body { background: #f8f9fa; }
+    #viz { background: white; border: 1px solid #ddd; border-radius: .5rem; }
+    .algo-header { font-family: monospace; }
+  </style>
+</head>
+<body class="py-5">
+  <div class="container">
+    <h1 class="mb-4 text-center">Sorting Soundscape</h1>
+    <p class="text-center algo-header">
+      <span id="algo-name" class="text-primary"></span>
+    </p>
+    <div class="d-flex justify-content-center mb-3">
+      <canvas id="viz" width="800" height="300"></canvas>
+    </div>
+    <div class="text-center">
+      <button id="reload" class="btn btn-outline-secondary">🔄 Load Another</button>
+      <button id="randomBtn" onclick="goToRandomPage(true)">Take Me Somewhere Else Fun</button>
+    </div>
+  </div>
+
+  <script>
+  // ── Setup ──────────────────────────────────────────────────────────────────
+  const canvas   = document.getElementById('viz'),
+        ctx      = canvas.getContext('2d'),
+        reload   = document.getElementById('reload'),
+        audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  let abort = false;
+  const wait = ms => new Promise(r=>setTimeout(r,ms));
+
+  // short, enveloped tone 300–800Hz
+  function playTone(freq,duration=20){
+    const osc = audioCtx.createOscillator(),
+          amp = audioCtx.createGain(),
+          now = audioCtx.currentTime;
+    osc.connect(amp); amp.connect(audioCtx.destination);
+    amp.gain.setValueAtTime(0, now);
+    amp.gain.linearRampToValueAtTime(0.1, now+0.005);
+    amp.gain.linearRampToValueAtTime(0, now+duration/1000);
+    osc.frequency.value=freq;
+    osc.start(now); osc.stop(now+duration/1000);
+  }
+  function freqFromHeight(h){
+    return 300 + (h / canvas.height) * 500;
+  }
+  function drawArray(arr, highlights={}){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const w = canvas.width/arr.length;
+    arr.forEach((h,i)=>{
+      ctx.fillStyle = highlights[i]||'#007bff';
+      ctx.fillRect(i*w, canvas.height-h, w-1, h);
+    });
+  }
+
+  // ── 28 Sorting Algorithms ─────────────────────────────────────────────────
+
+  async function bubbleSort(arr){
+    document.getElementById('algo-name').textContent='Bubble Sort';
+    for(let n=arr.length;n>1;n--){
+      for(let i=0;i<n-1;i++){
+        if(abort) return;
+        drawArray(arr,{[i]:'#f00',[i+1]:'#f00'});
+        playTone(freqFromHeight(arr[i]));
+        await wait(15);
+        if(arr[i]>arr[i+1]) [arr[i],arr[i+1]]=[arr[i+1],arr[i]];
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function insertionSort(arr){
+    document.getElementById('algo-name').textContent='Insertion Sort';
+    for(let i=1;i<arr.length;i++){
+      let key=arr[i],j=i-1;
+      while(j>=0 && arr[j]>key){
+        if(abort) return;
+        arr[j+1]=arr[j];
+        drawArray(arr,{[j]:'#f00',[j+1]:'#f00'});
+        playTone(freqFromHeight(arr[j]));
+        await wait(15);
+        j--;
+      }
+      arr[j+1]=key;
+    }
+    drawArray(arr);
+  }
+
+  async function selectionSort(arr){
+    document.getElementById('algo-name').textContent='Selection Sort';
+    for(let i=0;i<arr.length-1;i++){
+      let m=i;
+      for(let j=i+1;j<arr.length;j++){
+        if(abort) return;
+        if(arr[j]<arr[m]) m=j;
+        drawArray(arr,{[j]:'#f00',[m]:'#0a0'});
+        playTone(freqFromHeight(arr[j]));
+        await wait(15);
+      }
+      if(m!==i) [arr[i],arr[m]]=[arr[m],arr[i]];
+    }
+    drawArray(arr);
+  }
+
+  async function shellSort(arr){
+    document.getElementById('algo-name').textContent='Shell Sort';
+    for(let gap=Math.floor(arr.length/2);gap>0;gap=Math.floor(gap/2)){
+      for(let i=gap;i<arr.length;i++){
+        if(abort) return;
+        let tmp=arr[i],j=i;
+        while(j>=gap && arr[j-gap]>tmp){
+          arr[j]=arr[j-gap];
+          drawArray(arr,{[j]:'#f00',[j-gap]:'#0a0'});
+          playTone(freqFromHeight(arr[j]));
+          await wait(15);
+          j-=gap;
+        }
+        arr[j]=tmp;
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function mergeSort(arr){
+    document.getElementById('algo-name').textContent='Merge Sort';
+    async function merge(lo,mid,hi){
+      let L=arr.slice(lo,mid), R=arr.slice(mid,hi),i=0,j=0,k=lo;
+      while(i<L.length||j<R.length){
+        if(abort) return;
+        if(j>=R.length||(i<L.length&&L[i]<R[j])) arr[k++]=L[i++];
+        else arr[k++]=R[j++];
+        drawArray(arr,{[k-1]:'#f00'});
+        playTone(freqFromHeight(arr[k-1]));
+        await wait(15);
+      }
+    }
+    async function ms(lo,hi){
+      if(hi-lo<2) return;
+      const mid=(lo+hi)>>1;
+      await ms(lo,mid); await ms(mid,hi); await merge(lo,mid,hi);
+    }
+    await ms(0,arr.length);
+    drawArray(arr);
+  }
+
+  async function quickSort(arr){
+    document.getElementById('algo-name').textContent='Quick Sort';
+    async function qs(lo,hi){
+      if(lo>=hi) return;
+      const pivot=arr[Math.floor((lo+hi)/2)];
+      let i=lo,j=hi;
+      while(i<=j){
+        while(arr[i]<pivot) i++;
+        while(arr[j]>pivot) j--;
+        if(abort) return;
+        if(i<=j){
+          [arr[i],arr[j]]=[arr[j],arr[i]];
+          drawArray(arr,{[i]:'#f00',[j]:'#f00'});
+          playTone(freqFromHeight(arr[i]));
+          await wait(15);
+          i++; j--;
+        }
+      }
+      await qs(lo,j); await qs(i,hi);
+    }
+    await qs(0,arr.length-1);
+    drawArray(arr);
+  }
+
+  async function heapSort(arr){
+    document.getElementById('algo-name').textContent='Heap Sort';
+    const n=arr.length;
+    function heapify(n,i){
+      let m=i, l=2*i+1, r=2*i+2;
+      if(l<n&&arr[l]>arr[m]) m=l;
+      if(r<n&&arr[r]>arr[m]) m=r;
+      return m;
+    }
+    for(let i=Math.floor(n/2)-1;i>=0;i--){
+      let r=i;
+      while(true){
+        if(abort) return;
+        const m=heapify(n,r);
+        if(m===r) break;
+        [arr[r],arr[m]]=[arr[m],arr[r]];
+        drawArray(arr,{[r]:'#f00',[m]:'#f00'});
+        playTone(freqFromHeight(arr[r]));
+        await wait(15);
+        r=m;
+      }
+    }
+    for(let i=n-1;i>0;i--){
+      [arr[0],arr[i]]=[arr[i],arr[0]];
+      drawArray(arr,{0:'#f00',[i]:'#f00'});
+      playTone(freqFromHeight(arr[i]));
+      await wait(15);
+      let r=0;
+      while(true){
+        if(abort) return;
+        const m=heapify(i,r);
+        if(m===r) break;
+        [arr[r],arr[m]]=[arr[m],arr[r]];
+        drawArray(arr,{[r]:'#f00',[m]:'#f00'});
+        playTone(freqFromHeight(arr[r]));
+        await wait(15);
+        r=m;
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function cocktailSort(arr){
+    document.getElementById('algo-name').textContent='Cocktail Sort';
+    let start=0,end=arr.length-1,sw=true;
+    while(sw){
+      sw=false;
+      for(let i=start;i<end;i++){
+        if(abort) return;
+        drawArray(arr,{[i]:'#f00',[i+1]:'#f00'});
+        playTone(freqFromHeight(arr[i]));
+        await wait(15);
+        if(arr[i]>arr[i+1]){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; sw=true; }
+      }
+      end--;
+      for(let i=end;i>start;i--){
+        if(abort) return;
+        drawArray(arr,{[i]:'#f00',[i-1]:'#f00'});
+        playTone(freqFromHeight(arr[i]));
+        await wait(15);
+        if(arr[i]<arr[i-1]){ [arr[i],arr[i-1]]=[arr[i-1],arr[i]]; sw=true; }
+      }
+      start++;
+    }
+    drawArray(arr);
+  }
+
+  async function combSort(arr){
+    document.getElementById('algo-name').textContent='Comb Sort';
+    let gap=arr.length,sw=true;
+    while(gap>1||sw){
+      gap=Math.floor(gap/1.3); if(gap<1) gap=1;
+      sw=false;
+      for(let i=0;i+gap<arr.length;i++){
+        if(abort) return;
+        drawArray(arr,{[i]:'#f00',[i+gap]:'#f00'});
+        playTone(freqFromHeight(arr[i]));
+        await wait(15);
+        if(arr[i]>arr[i+gap]){ [arr[i],arr[i+gap]]=[arr[i+gap],arr[i]]; sw=true; }
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function gnomeSort(arr){
+    document.getElementById('algo-name').textContent='Gnome Sort';
+    let idx=1;
+    while(idx<arr.length){
+      if(abort) return;
+      if(idx===0||arr[idx]>=arr[idx-1]) idx++;
+      else {
+        [arr[idx],arr[idx-1]]=[arr[idx-1],arr[idx]];
+        idx--;
+      }
+      drawArray(arr,{[idx]:'#f00'});
+      playTone(freqFromHeight(arr[idx]||0));
+      await wait(15);
+    }
+    drawArray(arr);
+  }
+
+  async function oddEvenSort(arr){
+    document.getElementById('algo-name').textContent='Odd-Even Sort';
+    let sorted=false;
+    while(!sorted){
+      sorted=true;
+      for(let i=1;i+1<arr.length;i+=2){
+        if(abort) return;
+        if(arr[i]>arr[i+1]){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; sorted=false; }
+        drawArray(arr,{[i]:'#f00',[i+1]:'#f00'});
+        playTone(freqFromHeight(arr[i]));
+        await wait(15);
+      }
+      for(let i=0;i+1<arr.length;i+=2){
+        if(abort) return;
+        if(arr[i]>arr[i+1]){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; sorted=false; }
+        drawArray(arr,{[i]:'#f00',[i+1]:'#f00'});
+        playTone(freqFromHeight(arr[i]));
+        await wait(15);
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function cycleSort(arr){
+    document.getElementById('algo-name').textContent='Cycle Sort';
+    for(let start=0;start<arr.length-1;start++){
+      if(abort) return;
+      let item=arr[start], pos=start;
+      for(let i=start+1;i<arr.length;i++) if(arr[i]<item) pos++;
+      if(pos===start) continue;
+      while(item===arr[pos]) pos++;
+      [arr[pos],item]=[item,arr[pos]];
+      drawArray(arr,{[pos]:'#f00'});
+      playTone(freqFromHeight(arr[pos]));
+      await wait(15);
+      while(pos!==start){
+        pos=start;
+        for(let i=start+1;i<arr.length;i++) if(arr[i]<item) pos++;
+        while(item===arr[pos]) pos++;
+        [arr[pos],item]=[item,arr[pos]];
+        drawArray(arr,{[pos]:'#f00'});
+        playTone(freqFromHeight(arr[pos]));
+        await wait(15);
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function pancakeSort(arr){
+    document.getElementById('algo-name').textContent='Pancake Sort';
+    function flip(i){
+      for(let a=0,b=i;a<b;a++,b--) [arr[a],arr[b]]=[arr[b],arr[a]];
+    }
+    for(let curr=arr.length;curr>1;curr--){
+      if(abort) return;
+      let maxIdx=0;
+      for(let i=1;i<curr;i++) if(arr[i]>arr[maxIdx]) maxIdx=i;
+      if(maxIdx!==curr-1){
+        flip(maxIdx);
+        drawArray(arr,{});
+        playTone(freqFromHeight(arr[0]));
+        await wait(30);
+        flip(curr-1);
+        drawArray(arr,{});
+        playTone(freqFromHeight(arr[curr-1]));
+        await wait(30);
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function stoogeSort(arr){
+    document.getElementById('algo-name').textContent='Stooge Sort';
+    async function ss(i,j){
+      if(abort) return;
+      if(arr[i]>arr[j]) [arr[i],arr[j]]=[arr[j],arr[i]];
+      drawArray(arr,{[i]:'#f00',[j]:'#f00'});
+      playTone(freqFromHeight(arr[i]));
+      await wait(30);
+      if(j-i>1){
+        const t=Math.floor((j-i+1)/3);
+        await ss(i,j-t);
+        await ss(i+t,j);
+        await ss(i,j-t);
+      }
+    }
+    await ss(0,arr.length-1);
+    drawArray(arr);
+  }
+
+  async function pigeonholeSort(arr){
+    document.getElementById('algo-name').textContent='Pigeonhole Sort';
+    const min=Math.min(...arr), max=Math.max(...arr), range=max-min+1;
+    const holes=Array(range).fill(0);
+    for(const v of arr){ if(abort) return; holes[v-min]++; }
+    let idx=0;
+    for(let i=0;i<range;i++){
+      // corrected loop syntax to avoid "-->" HTML confusion
+      while (holes[i]-- > 0) {
+        if(abort) return;
+        arr[idx]=i+min;
+        drawArray(arr,{[idx]:'#f00'});
+        playTone(freqFromHeight(arr[idx]));
+        await wait(5);
+        idx++;
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function countingSort(arr){
+    document.getElementById('algo-name').textContent='Counting Sort';
+    const max= Math.max(...arr);
+    const count=Array(max+1).fill(0);
+    for(const v of arr){ if(abort) return; count[v]++; }
+    let idx=0;
+    for(let i=0;i<=max;i++){
+      while(count[i]-->0){
+        if(abort) return;
+        arr[idx]=i;
+        drawArray(arr,{[idx]:'#f00'});
+        playTone(freqFromHeight(arr[idx]));
+        await wait(5);
+        idx++;
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function radixSort(arr){
+    document.getElementById('algo-name').textContent='Radix Sort (LSD)';
+    const max= Math.max(...arr);
+    let exp=1;
+    const n=arr.length;
+    while(Math.floor(max/exp)>0){
+      if(abort) return;
+      const output=Array(n), count=Array(10).fill(0);
+      for(const v of arr) count[Math.floor(v/exp)%10]++;
+      for(let i=1;i<10;i++) count[i]+=count[i-1];
+      for(let i=n-1;i>=0;i--){
+        const v=arr[i], d=Math.floor(v/exp)%10;
+        output[--count[d]]=v;
+      }
+      for(let i=0;i<n;i++){
+        arr[i]=output[i];
+        drawArray(arr,{[idx]:'#f00'});
+        playTone(freqFromHeight(arr[i]));
+        await wait(5);
+      }
+      exp*=10;
+    }
+    drawArray(arr);
+  }
+
+  async function bucketSort(arr){
+    document.getElementById('algo-name').textContent='Bucket Sort';
+    const n=arr.length, max=Math.max(...arr);
+    const buckets=Array.from({length:n},()=>[]);
+    for(const v of arr){
+      if(abort) return;
+      buckets[Math.floor(v/max*(n-1))].push(v);
+    }
+    let idx=0;
+    for(const b of buckets){
+      b.sort((a,b)=>a-b);
+      for(const v of b){
+        if(abort) return;
+        arr[idx]=v;
+        drawArray(arr,{[idx]:'#f00'});
+        playTone(freqFromHeight(arr[idx]));
+        await wait(5);
+        idx++;
+      }
+    }
+    drawArray(arr);
+  }
+
+  async function bitonicSort(arr){
+    document.getElementById('algo-name').textContent='Bitonic Sort';
+    const n=arr.length;
+    async function compareAndSwap(i,j,dir){
+      if(abort) return;
+      if((arr[i]>arr[j])===dir) [arr[i],arr[j]]=[arr[j],arr[i]];
+      drawArray(arr,{[i]:'#f00',[j]:'#f00'});
+      playTone(freqFromHeight(arr[i]));
+      await wait(15);
+    }
+    async function bitonicMerge(lo,sz,dir){
+      if(sz>1){
+        const m=sz>>1;
+        for(let i=lo;i<lo+m;i++) await compareAndSwap(i,i+m,dir);
+        await bitonicMerge(lo,m,dir);
+        await bitonicMerge(lo+m,m,dir);
+      }
+    }
+    async function bs(lo,sz,dir){
+      if(sz>1){
+        const m=sz>>1;
+        await bs(lo,m,1); await bs(lo+m,m,0);
+        await bitonicMerge(lo,sz,dir);
+      }
+    }
+    let p=1; while(p<n) p<<=1;
+    while(arr.length<p) arr.push(0);
+    await bs(0,arr.length,1);
+    arr.length=n;
+    drawArray(arr);
+  }
+
+  // ── Runner ──────────────────────────────────────────────────────────────
+  const demos = [
+    bubbleSort, insertionSort, selectionSort,
+    shellSort, mergeSort, quickSort, heapSort,
+    cocktailSort, combSort, gnomeSort, oddEvenSort,
+    cycleSort, pancakeSort, stoogeSort, pigeonholeSort,
+    countingSort, radixSort, bucketSort, bitonicSort
+  ];
+
+  async function runDemo(){
+    abort = false;
+    reload.disabled = true;
+    const arr = Array.from({length:100},()=>Math.floor(Math.random()*canvas.height));
+    const fn  = demos[Math.floor(Math.random()*demos.length)];
+    await fn(arr);
+    if(!abort) reload.disabled = false;
+  }
+
+  reload.addEventListener('click',()=>{
+    abort = true;
+    setTimeout(runDemo,50);
+  });
+
+  window.onload = runDemo;
+  </script>
+
+  <script>
+  const funPages = [
+    'visualizer.html',
+    'algs.html',
+    'spirograph.html'
+    // Add more pages here as needed
+  ];
+
+  function goToRandomPage(excludeCurrent = true) {
+    const current = window.location.pathname.split('/').pop();
+    const choices = excludeCurrent
+      ? funPages.filter(page => page !== current)
+      : funPages;
+
+    if (choices.length === 0) return;
+    const random = choices[Math.floor(Math.random() * choices.length)];
+    window.location.href = random;
+  }
+</script>
+</body>
+</html>
