@@ -25,6 +25,7 @@ var path = {
     images: "source/images/**/*.+(png|jpg|gif|svg)",
     fonts: "source/fonts/**/*.+(eot|ttf|woff|woff2|otf)",
     proofs: "source/proofs/**/*.*",
+    chess: "source/chess/**/*.*",
   },
   build: {
     dirBuild: "theme/",
@@ -177,6 +178,17 @@ gulp.task("clean", function (cb) {
   rimraf("./theme", cb);
 });
 
+gulp.task("chess:build", function () {
+  return gulp
+    .src(path.src.chess)
+    .pipe(gulp.dest(path.build.dirDev + "chess/"))
+    .pipe(
+      bs.reload({
+        stream: true,
+      })
+    );
+});
+
 // Error Message Show
 function customPlumber(errTitle) {
   return plumber({
@@ -199,6 +211,7 @@ gulp.task("watch:build", function () {
   gulp.watch(path.src.fonts, gulp.series("fonts:build"));
   gulp.watch(path.src.plugins, gulp.series("plugins:build"));
   gulp.watch(path.src.proofs, gulp.series("proofs:build"));
+  gulp.watch(path.src.chess, gulp.series("chess:build"));
 });
 
 // Dev Task
@@ -234,6 +247,7 @@ gulp.task(
     "images:build",
     "fonts:build",
     "plugins:build",
-    "proofs:build"
+    "proofs:build",
+    "chess:build",
   )
 );
