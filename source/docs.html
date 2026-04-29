@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Synta — Language Reference</title>
+  <style>
+    :root{--bg:#f4fbff;--panel:#eaf6fb;--muted:#7b98a6;--accent:#3aa0d9}
+    *{box-sizing:border-box;font-family:Inter,Segoe UI,Arial,sans-serif}
+    body{margin:0;background:var(--bg);color:#0c2b2e}
+    main.docs{display:block;max-width:900px;margin:28px auto;padding:20px;background:transparent;overflow-wrap:break-word;word-break:break-word}
+    .docs h1{margin-top:0;font-size:26px}
+    .docs h2{margin-top:18px;font-size:18px}
+    .docs h3{margin-top:18px;margin-bottom:10px}
+    .docs p{color:#123;line-height:1.55}
+    .docs ul{margin-left:1.15rem}
+    .example,.docs pre{background:#f6f8fa;padding:12px;border-radius:6px;border:1px solid #e9eef2;overflow:auto;font-family:ui-monospace,monospace;font-size:13px;white-space:pre}
+    .kbd{font-family:ui-monospace,monospace;background:#f0f7fb;border-radius:4px;padding:3px 6px;border:1px solid #e2f1fa;margin:0 3px}
+    .boxed{border-left:3px solid var(--accent);padding:10px 14px;background:transparent;border-radius:4px}
+    table.docref{border-collapse:collapse;width:100%;margin-top:8px}
+    table.docref td,table.docref th{border:1px solid #eef8fc;padding:8px;text-align:left;vertical-align:top}
+    .toplink{float:right;margin-left:12px;color:var(--muted);text-decoration:none}
+    .split{border:0;border-top:1px solid #dbe7ef;margin:26px 0}
+    code{font-family:ui-monospace,monospace}
+  </style>
+</head>
+<body>
+  <main class="docs">
+    <a href="synta.html" class="toplink">Open App</a>
+    <h1>Synta — Language Reference</h1>
+
+    <p>This is a compact, technical specification for the three artifacts Synta supports: <strong>bracketed trees</strong> (constituency notation), <strong>.synta</strong> (flat, line-oriented), and <strong>.syt</strong> (styling language executed at render time). The reference is precise rather than tutorial-style; examples are included for every construct.</p>
+
+    <h2 id="summary">Summary</h2>
+    <ul>
+      <li><strong>Bracketed trees</strong>: nested bracket representation of constituency structure. Supports per-node subscripts, numeric indices, parentheses for multiword terminals, and inline arrow hints.</li>
+      <li><strong>.synta</strong>: one-line-per-thing serialisation that maps terminals and constituents to explicit line numbers and supports explicit arrows.</li>
+      <li><strong>.syt</strong>: an indentation-aware styling language with assignments, control-flow, comprehensions, and built-in helpers that mutate the renderer scene before drawing.</li>
+    </ul>
+
+    <hr class="split" />
+    <h2 id="bracketed">1. Bracketed notation (grammar & semantics)</h2>
+    <h3>1.1 Grammar (informal)</h3>
+    <pre>Tree    := Node | Term
+Node    := '[' Label (Child)* ']'
+Term    := Token | '(' Phrase ')'
+Label   := IDENT ('_' SUB)? ('{' INDEX '}')? ('->' INDEX)?
+Token   := IDENT ('_' SUB)? ('{' INDEX '}')? ('->' INDEX)?
+Phrase  := any characters except unbalanced parentheses (can contain spaces)</pre>
+
+    <h3>1.2 Features</h3>
+    <ul>
+      <li><strong>Preterminals</strong>: an internal node whose single child is a terminal will be treated as a POS + word pair and rendered compactly.</li>
+      <li><strong>Multi-word terminals</strong>: use parentheses to include spaces, e.g. <code>(New York)</code>.</li>
+      <li><strong>Subtext</strong>: append <code>_sub</code> to a label or token to render an additional subline for that object.</li>
+      <li><strong>Numeric indices</strong>: append <code>{n}</code> to label or token; indices are used by arrows and preserved across conversion to <code>.synta</code>.</li>
+      <li><strong>Arrow hints</strong>: append <code>->m</code> to indicate an outgoing arrow to index <code>m</code>. These hints are kept during conversion.</li>
+    </ul>
+
+    <h3>1.3 Examples</h3>
+    <pre>[S [NP{1} This] [VP [V is] [NP [D a] [N_wug{2}]]]]
+
+// multiword terminal
+[NP (New York)_LOC{4}]
+
+// arrow hint
+[S [NP{1} He->2] [VP ...]]</pre>
+
+    <h3>1.4 Notes & limitations</h3>
+    <ul>
+      <li>Parentheses may be nested but must be balanced; no escape sequences are supported inside parentheses.</li>
+      <li>Whitespace between tokens is insignificant for structure but used to split unparenthesized multiword tokens in terminals.</li>
+    </ul>
+
+    <hr class="split" />
+    <h2 id="synta">2. .synta — flat, line-oriented format</h2>
+    <h3>2.1 Line types</h3>
+    <ul>
+      <li><strong>Terminal</strong>: <code>* POS token</code> — star, POS label, token (parentheses allowed for multi-word token).</li>
+      <li><strong>Composition</strong>: <code>i|j|... Label</code> — child line numbers separated by <code>|</code>, then parent label.</li>
+      <li><strong>Arrow</strong>: <code>from-&gt;to {optional label}</code> — arrow between two line numbers; label inside braces is optional.</li>
+    </ul>
+
+    <h3>2.2 Formal rules</h3>
+    <ul>
+      <li>Lines are implicitly numbered 1..N in file order (first non-empty line is 1).</li>
+      <li>When authored manually, arrow references should point to earlier lines; the parser will report an error if a reference points to the same or later line.</li>
+      <li>Terminal lines MUST begin with <code>*</code> and contain at least POS and token; tokens may be parenthesized to allow spaces.</li>
+    </ul>
+
+    <h3>2.3 Example</h3>
+    <pre>* D This
+* V is
+* D a
+* N wug
+3|4 NP
+2|5 VP
+1|6 S
+1->3 {trace}</pre>
+
+    <h3>2.4 Conversion considerations</h3>
+    <ul>
+      <li>Conversion from bracketed notation deterministically assigns line numbers by traversing terminals and constituents; indices from bracketed input are kept where possible.</li>
+      <li>Arrow labels in bracketed form are not preserved verbatim unless explicitly provided in <code>.synta</code> arrow lines.</li>
+    </ul>
+
+    <hr class="split" />
+    <h2 id="syt">3. .syt — styling language (complete reference)</h2>
+    <p><strong>Purpose:</strong> run arbitrary styling code against the renderer <em>scene</em> before the canvas draw pass. The language is indentation-sensitive and intentionally small but expressive.</p>
+
+    <h3>3.1 Lexical tokens</h3>
+    <ul>
+      <li><strong>NEWLINE, INDENT, DEDENT</strong> — produced by significant indentation.</li>
+      <li><strong>IDENT</strong> — identifiers (letters, digits, underscores; not starting with digit).</li>
+      <li><strong>KW</strong> — keywords: If, Elif, Else, While, For, each, Repeat, times, Func, return, break, continue, pass, and, or, not, in, has, where, true, false, null.</li>
+      <li><strong>STRING</strong> — double-quoted strings with common escapes <code>\n</code>, <code>\t</code>, <code>\"</code>.</li>
+      <li><strong>NUMBER</strong> — integer or floating numeric literals.</li>
+      <li><strong>OP</strong> — operators and punctuation: <code>=, +=, -=, *=, /=, %=, **, +, -, *, /, %, (, ), [, ], {, }, ., :, ,</code>, comparison ops, etc.</li>
+    </ul>
+
+    <h3>3.2 Statements</h3>
+    <ul>
+      <li><strong>Assignment</strong>: <code>target = expr</code> or compound operators (<code>+=</code>, etc.). Targets are identifiers, property access (<code>a.b</code>), or index (<code>a[0]</code>).</li>
+      <li><strong>Expression statement</strong>: evaluate expression for side effects (e.g., function calls).</li>
+      <li><strong>If/Elif/Else</strong>: standard conditional with block introduced by <code>:</code>.</li>
+      <li><strong>While</strong>, <strong>For each</strong> (<code>For each x in iterable:</code>), and <strong>Repeat n times</strong>.</li>
+      <li><strong>Func</strong> definition and <strong>return</strong> semantics (lexical closures supported).</li>
+      <li><strong>Break/Continue/Pass</strong> supported.</li>
+    </ul>
+
+    <h3>3.3 Expressions (summary)</h3>
+    <p>Supports precedence-aware expressions: unary (<code>-</code>, <code>not</code>), binary (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code>, <code>**</code>), comparisons (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>), logical <code>and</code>/<code>or</code>, membership <code>in</code>/<code>not in</code>, and <code>has</code> for property checks.</p>
+
+    <h3>3.4 Comprehensions</h3>
+    <p>List comprehensions using the syntax <code>[var in Collection where predicate]</code> produce a filtered list.</p>
+
+    <h3>3.5 Built-in runtime objects</h3>
+    <p>On execution the interpreter receives a <em>scene</em> object with these properties (names are case-sensitive):</p>
+    <ul>
+      <li><code>All</code>: array containing every object (nodes, lines, arrows) present in the scene.</li>
+      <li><code>Nodes</code>: array of node objects (internal and terminal nodes).</li>
+      <li><code>Terms</code>: array of terminal objects.</li>
+      <li><code>Lines</code>: array of parent→child edge objects.</li>
+      <li><code>Arrows</code>: array of arrow objects.</li>
+      <li><code>Tree</code>: object with global tree settings: <code>Alignment</code> ("level" or "bottom"), <code>MinVerticalSpacing</code>, <code>MaxVerticalSpacing</code>, <code>MinHorizontalSpacing</code>, <code>MaxHorizontalSpacing</code>.</li>
+    </ul>
+
+    <h3>3.6 Object shapes (common fields)</h3>
+    <p>Fields commonly present on scene objects (not exhaustive):</p>
+    <pre>Node/Term object:
+  Type: 'Node' | 'Term'
+  Id: string
+  Visible: boolean
+  Parent: reference | null
+  Children: array
+  Text: string
+  TextSize: number
+  Font: string
+  Color: css | [r,g,b]
+  X, Y, _x, _y: numeric positions
+
+Line object:
+  Type:'Line', Id: string, Parent: node, Child: node, Width, Color, Style
+
+Arrow object:
+  Type:'Arrow', Id: string, From: node, To: node, Width, Color, Style, Label, Visible</pre>
+
+    <h3>3.7 Property semantics</h3>
+    <ul>
+      <li>Assigning a property to an array broadcasts the assignment to every element that has that property (e.g., <code>Lines.Width = 2</code> updates every element of <code>Lines</code>).</li>
+      <li>Protecting built-ins: the interpreter prevents overwriting protected global names (<code>All, Nodes, Lines, Terms, Arrows, Tree</code>).</li>
+    </ul>
+
+    <h3>3.8 Built-in helper functions</h3>
+    <pre>len(x)       // length of list or string
+type(x)      // returns 'list','null','number','string', etc.
+range(a,b)   // integer ranges
+min/max/abs
+int/float/str/bool
+rgb(r,g,b)   // returns [r,g,b] tuple used by renderer</pre>
+
+    <h3>3.9 Error model</h3>
+    <p>Runtime errors (undefined variables, invalid indices, type errors, invalid assignments) are raised as exceptions. The UI surfaces interpreter errors in the errors panel.</p>
+
+    <hr class="split" />
+    <h2 id="patterns">4. Common SYT patterns & examples</h2>
+    <h3>4.1 Color nodes by label</h3>
+    <pre>for each n in Nodes:
+    if n.label == "NP":
+        n.Color = rgb(10,180,120)
+    elif n.label == "VP":
+        n.Color = rgb(10,120,180)</pre>
+
+    <h3>4.2 Hide unlabeled arrows</h3>
+    <pre>for each a in Arrows:
+    if not a.Label:
+        a.Visible = false</pre>
+
+    <h3>4.3 Increase spacing</h3>
+    <pre>Tree.MinHorizontalSpacing = 160
+Tree.MinVerticalSpacing = 240</pre>
+
+    <hr class="split" />
+    <h2 id="export">5. Export, conversion & validation</h2>
+    <ul>
+      <li>The renderer draws the scene to a single canvas. PNG export uses the canvas content only; DOM elements (gutters, editors) are not included.</li>
+      <li>Before exporting, click <strong>Render</strong> to re-run the <code>.syt</code> script so style mutations are applied to the scene.</li>
+      <li>The built-in <strong>Test Export</strong> runs an automated in-browser check for both bracketed and <code>.synta</code> render paths; it validates that exported PNG blobs are produced.</li>
+    </ul>
+
+    <hr class="split" />
+    <h2 id="appendix">Appendix: implementation notes</h2>
+    <p>These notes mirror the current implementation:</p>
+    <ul>
+      <li>Bracketed parser recognizes <code>{index}</code>, <code>_sub</code>, and <code>->index</code> tokens on labels and tokens.</li>
+      <li><code>.synta</code> parser enforces arrow references to earlier lines and treats <code>* POS token</code> as terminals.</li>
+      <li>The <code>.syt</code> interpreter is a small recursive-descent implementation with indentation tokens, a runtime environment exposing scene arrays, and safe builtins such as <code>rgb</code>, <code>len</code>, and <code>range</code>.</li>
+    </ul>
+
+    <footer style="margin-top:18px;color:var(--muted)">If you want a printable PDF spec or a machine-readable grammar (EBNF/ANTLR), tell me which format and I will add it.</footer>
+  </main>
+</body>
+</html>
