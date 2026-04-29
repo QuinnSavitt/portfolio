@@ -208,15 +208,6 @@ Tree.MinVerticalSpacing = 240</pre>
       <li>The built-in <strong>Test Export</strong> runs an automated in-browser check for both bracketed and <code>.synta</code> render paths; it validates that exported PNG blobs are produced.</li>
     </ul>
 
-    <hr class="split" />
-    <h2 id="appendix">Appendix: implementation notes</h2>
-    <p>These notes mirror the current implementation:</p>
-    <ul>
-      <li>Bracketed parser recognizes <code>{index}</code>, <code>_sub</code>, and <code>->index</code> tokens on labels and tokens.</li>
-      <li><code>.synta</code> parser enforces arrow references to earlier lines and treats <code>* POS token</code> as terminals.</li>
-      <li>The <code>.syt</code> interpreter is a small recursive-descent implementation with indentation tokens, a runtime environment exposing scene arrays, and safe builtins such as <code>rgb</code>, <code>len</code>, and <code>range</code>.</li>
-    </ul>
-
   </main>
 </body>
 </html>
