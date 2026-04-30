@@ -1,8 +1,25 @@
 (function(){
   function SytError(message, token){
     this.name = 'SytError';
-    this.message = message;
+    this.originalMessage = message;
     this.token = token || null;
+    if(this.token && typeof this.token === 'object'){
+      this.line = this.token.line || null;
+      this.col = this.token.col || null;
+      this.tokenValue = this.token.value !== undefined ? this.token.value : null;
+      this.tokenType = this.token.type || null;
+    } else {
+      this.line = null;
+      this.col = null;
+      this.tokenValue = null;
+      this.tokenType = null;
+    }
+
+    var parts = [message];
+    if(this.line) parts.push('line ' + this.line + (this.col ? (', col ' + this.col) : ''));
+    if(this.tokenValue !== null) parts.push('token: ' + JSON.stringify(this.tokenValue));
+    this.message = parts.join(' — ');
+    if(Error.captureStackTrace) Error.captureStackTrace(this, SytError);
   }
   SytError.prototype = Object.create(Error.prototype);
 
@@ -44,7 +61,7 @@
           tokens.push({type:'DEDENT', value:'DEDENT', line:lineNo+1, col:1});
         }
         if(indent !== indentStack[indentStack.length - 1]){
-          throw new SytError('Inconsistent indentation at line ' + (lineNo + 1));
+          throw new SytError('Inconsistent indentation', {line: lineNo + 1});
         }
       }
 
@@ -89,7 +106,7 @@
               str += content[j++];
             }
           }
-          if(j >= content.length) throw new SytError('Unterminated string at line ' + (lineNo + 1));
+          if(j >= content.length) throw new SytError('Unterminated string', {line: lineNo + 1, col: indent + i + 1, value: content.slice(i)});
           tokens.push({type:'STRING', value:str, line:lineNo+1, col});
           i = j + 1;
           continue;
@@ -116,7 +133,7 @@
           continue;
         }
 
-        throw new SytError('Unexpected character "' + ch + '" at line ' + (lineNo + 1));
+        throw new SytError('Unexpected character "' + ch + '"', {line: lineNo + 1, col});
       }
 
       tokens.push({type:'NEWLINE', value:'\n', line:lineNo+1, col:content.length+1});
@@ -193,11 +210,11 @@
     const expr = this.parseExpression();
     const op = this.peek();
     if(op.type === 'OP' && ASSIGN_OPS.has(op.value)){
-      this.advance();
+      const opTok = this.advance();
       const value = this.parseExpression();
-      return {type:'Assign', target:expr, op:op.value, value};
+      return {type:'Assign', target:expr, op:opTok.value, token: opTok, value};
     }
-    return {type:'ExprStmt', expr};
+    return {type:'ExprStmt', expr, token: expr && (expr.token)};
   };
 
   Parser.prototype.parseBlock = function(){
@@ -276,15 +293,15 @@
     }
     this.expect('OP',':');
     const body = this.parseBlock();
-    return {type:'FuncDef', name, params, body};
+    return {type:'FuncDef', name, params, body, token: name && {line: null, col: null}};
   };
 
   Parser.prototype.parseReturnStmt = function(){
-    this.expect('KW','return');
+    const retTok = this.expect('KW','return');
     if(this.peek().type === 'NEWLINE' || this.peek().type === 'DEDENT' || this.peek().type === 'EOF'){
-      return {type:'ReturnStmt', value:null};
+      return {type:'ReturnStmt', value:null, token: retTok};
     }
-    return {type:'ReturnStmt', value:this.parseExpression()};
+    return {type:'ReturnStmt', value:this.parseExpression(), token: retTok};
   };
 
   Parser.prototype.parseExpression = function(){
@@ -294,9 +311,9 @@
   Parser.prototype.parseOr = function(){
     let expr = this.parseAnd();
     while(this.peek().type === 'KW' && this.peek().value === 'or'){
-      const op = this.advance().value;
+      const opTok = this.advance();
       const right = this.parseAnd();
-      expr = {type:'BinaryOp', op, left:expr, right};
+      expr = {type:'BinaryOp', op: opTok.value, left:expr, right, token: opTok};
     }
     return expr;
   };
@@ -304,9 +321,9 @@
   Parser.prototype.parseAnd = function(){
     let expr = this.parseNot();
     while(this.peek().type === 'KW' && this.peek().value === 'and'){
-      const op = this.advance().value;
+      const opTok = this.advance();
       const right = this.parseNot();
-      expr = {type:'BinaryOp', op, left:expr, right};
+      expr = {type:'BinaryOp', op: opTok.value, left:expr, right, token: opTok};
     }
     return expr;
   };
@@ -325,28 +342,28 @@
     while(true){
       const t = this.peek();
       if(t.type === 'OP' && ['==','!=','<','<=','>','>='].includes(t.value)){
-        const op = this.advance().value;
+        const opTok = this.advance();
         const right = this.parseAdditive();
-        expr = {type:'BinaryOp', op, left:expr, right};
+        expr = {type:'BinaryOp', op: opTok.value, left:expr, right, token: opTok};
         continue;
       }
       if(t.type === 'KW' && t.value === 'in'){
-        this.advance();
+        const opTok = this.advance();
         const right = this.parseAdditive();
-        expr = {type:'BinaryOp', op:'in', left:expr, right};
+        expr = {type:'BinaryOp', op:'in', left:expr, right, token: opTok};
         continue;
       }
       if(t.type === 'KW' && t.value === 'has'){
-        this.advance();
-        const rhs = this.peek().type === 'IDENT' ? {type:'Identifier', name:this.advance().value} : this.parseAdditive();
-        expr = {type:'BinaryOp', op:'has', left:expr, right:rhs};
+        const opTok = this.advance();
+        const rhs = this.peek().type === 'IDENT' ? (function(){ const idTok = this.advance(); return {type:'Identifier', name:idTok.value, token:idTok}; }).call(this) : this.parseAdditive();
+        expr = {type:'BinaryOp', op:'has', left:expr, right:rhs, token: opTok};
         continue;
       }
       if(t.type === 'KW' && t.value === 'not' && this.peek(1).type === 'KW' && this.peek(1).value === 'in'){
-        this.advance();
-        this.advance();
+        const first = this.advance();
+        const second = this.advance();
         const right = this.parseAdditive();
-        expr = {type:'BinaryOp', op:'not in', left:expr, right};
+        expr = {type:'BinaryOp', op:'not in', left:expr, right, token: first};
         continue;
       }
       break;
@@ -357,9 +374,9 @@
   Parser.prototype.parseAdditive = function(){
     let expr = this.parseMultiplicative();
     while(this.peek().type === 'OP' && (this.peek().value === '+' || this.peek().value === '-')){
-      const op = this.advance().value;
+      const opTok = this.advance();
       const right = this.parseMultiplicative();
-      expr = {type:'BinaryOp', op, left:expr, right};
+      expr = {type:'BinaryOp', op: opTok.value, left:expr, right, token: opTok};
     }
     return expr;
   };
@@ -367,9 +384,9 @@
   Parser.prototype.parseMultiplicative = function(){
     let expr = this.parsePower();
     while(this.peek().type === 'OP' && ['*','/','%'].includes(this.peek().value)){
-      const op = this.advance().value;
+      const opTok = this.advance();
       const right = this.parsePower();
-      expr = {type:'BinaryOp', op, left:expr, right};
+      expr = {type:'BinaryOp', op: opTok.value, left:expr, right, token: opTok};
     }
     return expr;
   };
@@ -377,17 +394,17 @@
   Parser.prototype.parsePower = function(){
     let expr = this.parseUnary();
     if(this.peek().type === 'OP' && this.peek().value === '**'){
-      this.advance();
+      const opTok = this.advance();
       const right = this.parsePower();
-      expr = {type:'BinaryOp', op:'**', left:expr, right};
+      expr = {type:'BinaryOp', op:opTok.value, left:expr, right, token: opTok};
     }
     return expr;
   };
 
   Parser.prototype.parseUnary = function(){
     if(this.peek().type === 'OP' && this.peek().value === '-'){
-      this.advance();
-      return {type:'UnaryOp', op:'-', argument:this.parseUnary()};
+      const opTok = this.advance();
+      return {type:'UnaryOp', op:'-', argument:this.parseUnary(), token: opTok};
     }
     return this.parsePostfix();
   };
@@ -396,23 +413,27 @@
     let expr = this.parsePrimary();
     while(true){
       if(this.match('OP','.')){
-        const name = this.expect('IDENT', undefined, 'Expected property name after dot').value;
-        expr = {type:'Property', object:expr, name};
+        const nameTok = this.expect('IDENT', undefined, 'Expected property name after dot');
+        expr = {type:'Property', object:expr, name: nameTok.value, token: nameTok};
         continue;
       }
       if(this.match('OP','[')){
+        const lbr = {line: this.peek().line, col: this.peek().col};
         const index = this.parseExpression();
-        this.expect('OP',']');
-        expr = {type:'Index', object:expr, index};
+        const rbr = this.expect('OP',']');
+        expr = {type:'Index', object:expr, index, token: rbr};
         continue;
       }
       if(this.match('OP','(')){
+        const lpar = this.peek();
         const args = [];
         if(!this.match('OP',')')){
           do { args.push(this.parseExpression()); } while(this.match('OP',','));
-          this.expect('OP',')');
+          const rpar = this.expect('OP',')');
+          expr = {type:'Call', callee:expr, args, token: rpar};
+        } else {
+          expr = {type:'Call', callee:expr, args, token: lpar};
         }
-        expr = {type:'Call', callee:expr, args};
         continue;
       }
       break;
@@ -424,19 +445,19 @@
     const t = this.peek();
     if(t.type === 'NUMBER'){
       this.advance();
-      return {type:'Literal', value: t.value.includes('.') ? parseFloat(t.value) : parseInt(t.value,10)};
+      return {type:'Literal', value: t.value.includes('.') ? parseFloat(t.value) : parseInt(t.value,10), token: t};
     }
     if(t.type === 'STRING'){
       this.advance();
-      return {type:'Literal', value:t.value};
+      return {type:'Literal', value:t.value, token: t};
     }
     if(t.type === 'KW' && (t.value === 'true' || t.value === 'false' || t.value === 'null')){
       this.advance();
-      return {type:'Literal', value: t.value === 'true' ? true : (t.value === 'false' ? false : null)};
+      return {type:'Literal', value: t.value === 'true' ? true : (t.value === 'false' ? false : null), token: t};
     }
     if(t.type === 'IDENT'){
       this.advance();
-      return {type:'Identifier', name:t.value};
+      return {type:'Identifier', name:t.value, token: t};
     }
     if(this.match('OP','(')){
       const first = this.parseExpression();
@@ -444,14 +465,14 @@
         const items = [first];
         do { items.push(this.parseExpression()); } while(this.match('OP',','));
         this.expect('OP',')');
-        return {type:'TupleLiteral', items};
+        return {type:'TupleLiteral', items, token: t};
       }
       this.expect('OP',')');
       return first;
     }
     if(this.match('OP','[')){
       if(this.peek().type === 'IDENT' && this.peek(1).type === 'KW' && this.peek(1).value === 'in'){
-        const varName = this.advance().value;
+        const varTok = this.advance();
         this.advance(); // in
         const source = this.parseExpression();
         let where = null;
@@ -459,15 +480,15 @@
           this.advance();
           where = this.parseExpression();
         }
-        this.expect('OP',']');
-        return {type:'Comprehension', varName, source, where};
+        const rbr = this.expect('OP',']');
+        return {type:'Comprehension', varName:varTok.value, source, where, token: varTok};
       }
       const items = [];
       if(!this.match('OP',']')){
         do { items.push(this.parseExpression()); } while(this.match('OP',','));
         this.expect('OP',']');
       }
-      return {type:'ListLiteral', items};
+      return {type:'ListLiteral', items, token: t};
     }
     throw new SytError('Unexpected token in expression', t);
   };
@@ -519,14 +540,14 @@
     return propName in obj;
   }
 
-  function applyAssignOp(current, op, value){
+  function applyAssignOp(current, op, value, token){
     if(op === '=') return value;
     if(op === '+=') return current + value;
     if(op === '-=') return current - value;
     if(op === '*=') return current * value;
     if(op === '/=') return current / value;
     if(op === '%=') return current % value;
-    throw new SytError('Unsupported assignment operator ' + op);
+    throw new SytError('Unsupported assignment operator ' + op, token || null);
   }
 
   function Interpreter(context){
@@ -631,7 +652,7 @@
       }
       case 'ForEachStmt': {
         const iterable = this.evalExpr(stmt.iterable, env);
-        if(!Array.isArray(iterable)) throw new SytError('For each expects list/group iterable');
+        if(!Array.isArray(iterable)) throw new SytError('For each expects list/group iterable', stmt && stmt.iterable && stmt.iterable.token);
         this.inLoop++;
         try {
           for(const item of iterable){
@@ -670,18 +691,18 @@
         return;
       }
       case 'ReturnStmt':
-        if(this.inFunction <= 0) throw new SytError('return outside function');
+        if(this.inFunction <= 0) throw new SytError('return outside function', stmt && stmt.token);
         throw new ReturnSignal(stmt.value ? this.evalExpr(stmt.value, env) : null);
       case 'BreakStmt':
-        if(this.inLoop <= 0) throw new SytError('break outside loop');
+        if(this.inLoop <= 0) throw new SytError('break outside loop', stmt && stmt.token);
         throw new BreakSignal();
       case 'ContinueStmt':
-        if(this.inLoop <= 0) throw new SytError('continue outside loop');
+        if(this.inLoop <= 0) throw new SytError('continue outside loop', stmt && stmt.token);
         throw new ContinueSignal();
       case 'PassStmt':
         return;
       default:
-        throw new SytError('Unknown statement type: ' + stmt.type);
+        throw new SytError('Unknown statement type: ' + stmt.type, stmt && stmt.token);
     }
   };
 
@@ -691,10 +712,10 @@
     if(target.type === 'Identifier'){
       const name = target.name;
       if(env === this.global && this.protectedNames.has(name) && op === '='){
-        throw new SytError('Cannot overwrite built-in global: ' + name);
+        throw new SytError('Cannot overwrite built-in global: ' + name, target && target.token);
       }
       const current = (op === '=') ? undefined : env.get(name);
-      const next = applyAssignOp(current, op, value);
+      const next = applyAssignOp(current, op, value, target && target.token);
       if(env.hasOwn(name)) env.set(name, next);
       else if(env === this.global || env.get(name) === undefined) env.define(name, next);
       else env.set(name, next);
@@ -710,14 +731,14 @@
     if(target.type === 'Index'){
       const obj = this.evalExpr(target.object, env);
       const idx = Number(this.evalExpr(target.index, env));
-      if(!Array.isArray(obj)) throw new SytError('Index assignment target is not a list');
-      if(idx < 0 || idx >= obj.length) throw new SytError('Index out of bounds');
+      if(!Array.isArray(obj)) throw new SytError('Index assignment target is not a list', target && target.token);
+      if(idx < 0 || idx >= obj.length) throw new SytError('Index out of bounds', target && (target.index && target.index.token) || target && target.token);
       const current = obj[idx];
-      obj[idx] = applyAssignOp(current, op, value);
+      obj[idx] = applyAssignOp(current, op, value, target && target.token);
       return;
     }
 
-    throw new SytError('Invalid assignment target');
+    throw new SytError('Invalid assignment target', target && target.token);
   };
 
   Interpreter.prototype.assignProperty = function(obj, name, op, value){
@@ -725,26 +746,29 @@
       for(const item of obj){
         if(item && hasProperty(item, name)){
           const current = item[name];
-          item[name] = applyAssignOp(current, op, value);
+          item[name] = applyAssignOp(current, op, value, target && target.token);
         }
       }
       return;
     }
 
-    if(!isRenderableObject(obj)) throw new SytError('Invalid property assignment target');
-    if(!hasProperty(obj, name)) throw new SytError('Invalid property access: ' + name);
-    obj[name] = applyAssignOp(obj[name], op, value);
+    if(!isRenderableObject(obj)) throw new SytError('Invalid property assignment target', obj && obj.token);
+    if(!hasProperty(obj, name)) throw new SytError('Invalid property access: ' + name, obj && obj.token);
+    obj[name] = applyAssignOp(obj[name], op, value, token || (obj && obj.token));
   };
 
   Interpreter.prototype.evalExpr = function(expr, env){
     switch(expr.type){
-      case 'Identifier': return env.get(expr.name);
+      case 'Identifier': {
+        try { return env.get(expr.name); }
+        catch(e){ if(e instanceof SytError) throw new SytError(e.originalMessage || e.message, expr.token || expr); throw e; }
+      }
       case 'Literal': return expr.value;
       case 'UnaryOp': {
         const v = this.evalExpr(expr.argument, env);
         if(expr.op === '-') return -Number(v);
         if(expr.op === 'not') return !isTruthy(v);
-        throw new SytError('Unknown unary operator: ' + expr.op);
+        throw new SytError('Unknown unary operator: ' + expr.op, expr.token || expr.argument && expr.argument.token);
       }
       case 'BinaryOp': {
         if(expr.op === 'and'){
@@ -757,7 +781,8 @@
         }
         const left = this.evalExpr(expr.left, env);
         const right = this.evalExpr(expr.right, env);
-        return this.evalBinary(expr.op, left, right);
+        try { return this.evalBinary(expr.op, left, right); }
+        catch(e){ if(e instanceof SytError) throw new SytError(e.originalMessage || e.message, expr.token || expr); throw e; }
       }
       case 'Property': {
         const obj = this.evalExpr(expr.object, env);
@@ -768,28 +793,29 @@
           }
           return out;
         }
-        if(!isRenderableObject(obj)) throw new SytError('Invalid property access');
-        if(!hasProperty(obj, expr.name)) throw new SytError('Invalid property access: ' + expr.name);
+        if(!isRenderableObject(obj)) throw new SytError('Invalid property access', expr.token || expr.object && expr.object.token);
+        if(!hasProperty(obj, expr.name)) throw new SytError('Invalid property access: ' + expr.name, expr.token || expr.object && expr.object.token);
         return obj[expr.name];
       }
       case 'Index': {
         const obj = this.evalExpr(expr.object, env);
         const idx = Number(this.evalExpr(expr.index, env));
-        if(!Array.isArray(obj) && typeof obj !== 'string') throw new SytError('Index target is not indexable');
-        if(idx < 0 || idx >= obj.length) throw new SytError('Index out of bounds');
+        if(!Array.isArray(obj) && typeof obj !== 'string') throw new SytError('Index target is not indexable', expr.token || expr.object && expr.object.token);
+        if(idx < 0 || idx >= obj.length) throw new SytError('Index out of bounds', expr.index && expr.index.token || expr.token || expr.object && expr.object.token);
         return obj[idx];
       }
       case 'Call': {
         const callee = this.evalExpr(expr.callee, env);
         const args = expr.args.map(a=>this.evalExpr(a, env));
-        return this.callFunction(callee, args);
+        try { return this.callFunction(callee, args); }
+        catch(e){ if(e instanceof SytError) throw new SytError(e.originalMessage || e.message, expr.token || expr.callee && expr.callee.token); throw e; }
       }
       case 'TupleLiteral':
       case 'ListLiteral':
         return expr.items.map(item=>this.evalExpr(item, env));
       case 'Comprehension': {
         const src = this.evalExpr(expr.source, env);
-        if(!Array.isArray(src)) throw new SytError('Comprehension source must be a list/group');
+        if(!Array.isArray(src)) throw new SytError('Comprehension source must be a list/group', expr.token || expr.source && expr.source.token);
         const out = [];
         for(const item of src){
           const local = new Environment(env);
