@@ -98,7 +98,7 @@ export function chipLabel(note) {
   if (note.kind === "crest") return "CREST";
   if (note.kind === "jump") return "JUMP";
   if (note.kind === "dip") return "DIP";
-  const d = note.dir === 1 ? "L" : "R";
+  const d = note.dir === 1 ? "R" : "L";   // dir = 1 turns screen-right
   if (note.sev === "hp") return d + "-HAIR";
   if (note.sev === "sq") return d + "-SQ";
   if (note.sev === 6) return "FLAT-" + d;

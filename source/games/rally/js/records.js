@@ -1,13 +1,13 @@
-/* Daily Rally — persistence and the (simulated) world.
+/* Daily Rally — persistence and sharing.
  *
- * A static site has no server, so the "global leaderboard" is a simulated
- * field: a deterministic distribution anchored to the stage's bot time.
- * It is identical for every player on the same day — if you and a friend
- * post the same time you get the same rank — which keeps it honest as a
- * shared yardstick. The UI labels it as a sim field.
+ * There is no server and no leaderboard. The social loop is Wordle's:
+ * a copy-paste result your friends have to beat. The emoji sector grades
+ * are measured against the stage's deterministic ideal pace, so the same
+ * message means the same thing on everyone's phone.
  */
 
-import { hash32, localDayKey, rng } from "./daily.js";
+import { localDayKey } from "./daily.js";
+import { DS } from "./track.js";
 
 const PREFIX = "qs-rally-";
 
@@ -75,8 +75,6 @@ function markPlayedToday() {
 export function getStats() {
   return readJSON("stats", {
     days: 0, attempts: 0, finishes: 0,
-    bestPercentile: null, sumPercentile: 0, percentileCount: 0,
-    top10: 0, top1: 0,
     streak: 0, lastDay: null,
   });
 }
@@ -94,16 +92,6 @@ function bumpStats(day, run, flags) {
   write("stats", JSON.stringify(st));
 }
 
-export function notePercentile(pct) {
-  const st = getStats();
-  if (st.bestPercentile == null || pct < st.bestPercentile) st.bestPercentile = pct;
-  st.sumPercentile += pct;
-  st.percentileCount++;
-  if (pct <= 10) st.top10++;
-  if (pct <= 1) st.top1++;
-  write("stats", JSON.stringify(st));
-}
-
 /* -------------------------------------------------------------- settings */
 
 export function getSettings() {
@@ -115,67 +103,49 @@ export function saveSettings(s) {
   write("settings", JSON.stringify(s));
 }
 
-/* ------------------------------------------------------- simulated field */
-
-export function fieldFor(stage) {
-  const T = stage.botTime;
-  const seed = hash32(stage.seed ^ 0xf1e1d);
-  const r = rng(seed);
-  const wr = T * 1.008 + r() * T * 0.006;
-  const median = T * 1.31 + r() * T * 0.04;
-  const k = 2.05;
-  const lambda = (median - wr) / Math.pow(Math.LN2, 1 / k);
-  const size = 4200 + (seed % 4800);
-
-  // fraction of the field faster than time t
-  function fasterFrac(t) {
-    if (t <= wr) return 0;
-    return Math.max(0, Math.min(1, 1 - Math.exp(-Math.pow((t - wr) / lambda, k))));
-  }
-  function rank(t) {
-    if (t <= wr) return 1;
-    return Math.min(size, 1 + Math.floor(fasterFrac(t) * size));
-  }
-  function percentile(t) {
-    return Math.max(0.02, Math.min(100, fasterFrac(t) * 100));
-  }
-  // time needed to reach a percentile (inverse CDF)
-  function timeForPercentile(p) {
-    const f = p / 100;
-    return wr + lambda * Math.pow(-Math.log(1 - f), 1 / k);
-  }
-
-  // three deterministic rivals to chase
-  const rivalNames = ["Aksel V.", "Miko S.", "Robyn K."];
-  const rivals = rivalNames.map((name, i) => {
-    const jr = rng(hash32(seed + i * 977));
-    const base = [1.068, 1.125, 1.185][i];
-    return { name, time: T * (base + (jr() - 0.5) * 0.03) };
-  });
-
-  return { wr, median, size, rank, percentile, timeForPercentile, rivals, botTime: T };
-}
-
 /* -------------------------------------------------------------- sharing */
 
-export function shareText(stage, rec, field) {
-  const flagEmoji = { FI: "🇫🇮", GB: "🏴", SE: "🇸🇪", MC: "🇲🇨", GR: "🇬🇷", MA: "🇲🇦" };
+/* The stage's ideal (bot) time for each sector, the shared yardstick every
+ * player's emoji grades are measured against. */
+export function sectorIdeals(stage) {
+  const t = stage.profile.timeAt;
+  const i1 = Math.min(t.length - 1, Math.round(stage.splitS[0] / DS));
+  const i2 = Math.min(t.length - 1, Math.round(stage.splitS[1] / DS));
+  return [t[i1], t[i2] - t[i1], stage.botTime - t[i2]];
+}
+
+export function sectorEmoji(actual, ideal) {
+  if (!(ideal > 0) || !(actual > 0)) return "⬜";
+  const r = actual / ideal;
+  if (r <= 1.1) return "🟪";     // basically flying
+  if (r <= 1.22) return "🟩";
+  if (r <= 1.4) return "🟨";
+  return "🟥";
+}
+
+export function shareText(stage, rec) {
+  const flagEmoji = { FI: "🇫🇮", GB: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", SE: "🇸🇪", MC: "🇲🇨", GR: "🇬🇷", MA: "🇲🇦" };
   const surf = { gravel: "🌲", gravelWet: "🌧️", tarmac: "🏔️", tarmacWet: "🌧️", snow: "❄️", dirt: "🏜️" };
   const lines = [];
   lines.push("DAILY RALLY #" + stage.number + " 🏁");
-  lines.push((flagEmoji[stage.env.flag] || "") + " " + stage.env.name + " — " + stage.stageName);
-  lines.push((surf[stage.surfKey] || "") + " " + stage.surfaceName + " · " + stage.weather.label + " · " + stage.kmText);
+  lines.push((flagEmoji[stage.env.flag] || "") + " " + stage.env.name + " · " +
+    (surf[stage.surfKey] || "") + " " + stage.surfaceName + " · " + stage.kmText);
   if (rec.best != null) {
     lines.push("");
-    lines.push("⏱️ " + fmtShare(rec.best));
-    const pct = field.percentile(rec.best);
-    lines.push("🏆 #" + field.rank(rec.best) + " · top " + (pct < 1 ? pct.toFixed(1) : Math.ceil(pct)) + "% (sim field)");
-  }
-  if (rec.blind != null && rec.blind !== rec.best) {
-    lines.push("🕶️ blind: " + fmtShare(rec.blind));
-  }
-  if (rec.sectors) {
-    lines.push("S1 " + fmtShare(rec.sectors[0]) + " · S2 " + fmtShare(rec.sectors[1]) + " · S3 " + fmtShare(rec.sectors[2]));
+    lines.push("⏱️ " + fmtShare(rec.best) + " (" + rec.attempts + (rec.attempts === 1 ? " attempt)" : " attempts)"));
+    if (rec.blind != null) {
+      lines.push(rec.blind === rec.best
+        ? "🕶️ blind run — first try"
+        : "🕶️ blind " + fmtShare(rec.blind));
+    }
+    if (rec.sectors) {
+      const ideals = sectorIdeals(stage);
+      lines.push(
+        sectorEmoji(rec.sectors[0], ideals[0]) +
+        sectorEmoji(rec.sectors[1], ideals[1]) +
+        sectorEmoji(rec.sectors[2], ideals[2])
+      );
+    }
   }
   lines.push("");
   lines.push("Beat it.");

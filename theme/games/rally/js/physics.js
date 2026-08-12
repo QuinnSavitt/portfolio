@@ -187,7 +187,7 @@ export function step(car, stage, input) {
   const gS = stage.groundHeight(car.x - sinY * 0.8, car.z + cosY * 0.8, car.s);
   const groundY = gC.y;
   const fwdSlope = gF ? (gF.y - gC.y) / 1.3 : 0;   // dy per metre forward
-  const latSlope = gS ? (gS.y - gC.y) / 0.8 : 0;   // dy per metre left
+  const latSlope = gS ? (gS.y - gC.y) / 0.8 : 0;   // dy per metre toward +d
   car.groundPitch = Math.atan(fwdSlope);
   car.groundRoll = Math.atan(latSlope);
   car.zone = gC.on;

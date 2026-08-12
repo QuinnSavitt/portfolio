@@ -74,6 +74,22 @@ if (mode === "all" || mode === "gen") {
   console.log(bad === 0 ? "GEN SWEEP OK" : `GEN SWEEP: ${bad} problem days`);
 }
 
+if (mode === "all" || mode === "drive" || mode === "controls") {
+  // steering handedness regression: dir=+1 (the D/right key) must move the
+  // car toward +Z, which is SCREEN-RIGHT when driving +X in the Y-up frame
+  const flat = {
+    grip: { lat: 0.86, long: 0.88, B: 8.5, C: 1.65 },
+    offroad: { lat: 0.6, long: 0.55, drag: 3.2 },
+    surfKey: "gravel",
+    groundHeight: () => ({ y: 0, on: "road", rq: { s: 0, d: 0, y: 0, hw: 100, camberT: 0, grade: 0, curv: 0, flag: 0, heading: 0, idx: 0 } }),
+    colliderHash: new Map(),
+  };
+  const c = makeCar();
+  c.vx = 20;
+  for (let i = 0; i < 240; i++) step(c, flat, { dir: 1, throttle: 0.4, brake: 0, handbrake: false });
+  console.log(c.z > 1 ? "CONTROLS OK (dir=+1 -> screen-right)" : "CONTROLS BROKEN: dir=+1 moved z=" + c.z.toFixed(2));
+}
+
 if (mode === "all" || mode === "drive") {
   console.log("\n=== bot test drives ===");
   let fails = 0;

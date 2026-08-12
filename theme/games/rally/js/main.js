@@ -26,9 +26,9 @@ const els = {
   menuFacts: $("menuFacts"), menuBlind: $("menuBlind"), menuBest: $("menuBest"), menuAttempts: $("menuAttempts"),
   btnDrive: $("btnDrive"), btnPractice: $("btnPractice"), btnHelp: $("btnHelp"),
   togAudio: $("togAudio"), togVoice: $("togVoice"), togGhost: $("togGhost"), togQuality: $("togQuality"),
-  menuLb: $("menuLb"), menuStats: $("menuStats"), nextIn: $("nextIn"),
+  menuStats: $("menuStats"), nextIn: $("nextIn"),
   results: $("results"), resKicker: $("resKicker"), resTime: $("resTime"), resBadges: $("resBadges"),
-  resDelta: $("resDelta"), resGrid: $("resGrid"), resSimNote: $("resSimNote"), resRivals: $("resRivals"),
+  resDelta: $("resDelta"), resGrid: $("resGrid"),
   btnRetry: $("btnRetry"), btnShare: $("btnShare"), btnMenu: $("btnMenu"), resHint: $("resHint"),
   help: $("help"), btnCloseHelp: $("btnCloseHelp"),
   stageTag: $("stageTag"), timer: $("timer"), delta: $("delta"), notesStrip: $("notesStrip"),
@@ -50,7 +50,6 @@ const S = {
   codriver: null,
   recorder: makeRecorder(),
   settings: records.getSettings(),
-  field: null,
   pbGhost: null,
 
   ticks: 0,
@@ -93,7 +92,9 @@ function readInput() {
   const left = keys.KeyA || keys.ArrowLeft;
   const right = keys.KeyD || keys.ArrowRight;
   return {
-    dir: (left ? 1 : 0) - (right ? 1 : 0),
+    // positive dir = positive curvature, which is a SCREEN-RIGHT turn in the
+    // Y-up render coordinate system, so the D/→ key maps to +1
+    dir: (right ? 1 : 0) - (left ? 1 : 0),
     throttle: keys.KeyW || keys.ArrowUp ? 1 : 0,
     brake: keys.KeyS || keys.ArrowDown ? 1 : 0,
     handbrake: !!keys.Space,
@@ -171,7 +172,6 @@ async function boot() {
   onResize();
 
   S.codriver = makeCoDriver(S.stage, (text, urgent) => audio.speak(text, urgent));
-  S.field = records.fieldFor(S.stage);
   S.camMode = S.settings.camera || 0;
   const rec = records.getDayRecord(S.day);
   S.pbGhost = S.mode === "daily" ? decodeGhost(rec.ghost) : null;
@@ -229,25 +229,9 @@ function fillMenu() {
   els.menuAttempts.textContent = rec.attempts;
   els.btnDrive.textContent = rec.blind == null ? "Drive — blind run" : "Drive";
 
-  // sim leaderboard preview
-  const f = S.field;
-  const rows = [
-    { nm: "World record", tm: f.wr, cls: "" },
-    { nm: "Top 1%", tm: f.timeForPercentile(1), cls: "" },
-  ];
-  for (const rv of f.rivals) rows.push({ nm: rv.name, tm: rv.time, cls: "" });
-  if (rec.best != null) rows.push({ nm: "You", tm: rec.best, cls: "you" });
-  rows.sort((a, b) => a.tm - b.tm);
-  let lb = "<h3>Today's field <span style='font-weight:400'>(simulated)</span></h3>";
-  for (const row of rows) {
-    lb += "<div class='lbrow " + row.cls + "'><span class='nm'>" + row.nm + "</span><span class='tm'>" + fmtTime(row.tm) + "</span></div>";
-  }
-  els.menuLb.innerHTML = lb;
-
   const stats = records.getStats();
   els.menuStats.innerHTML = stats.days > 0
-    ? "Streak <b>" + stats.streak + "</b> · rallies <b>" + stats.days + "</b> · attempts <b>" + stats.attempts + "</b>" +
-      (stats.bestPercentile != null ? " · best <b>top " + (stats.bestPercentile < 1 ? stats.bestPercentile.toFixed(1) : Math.ceil(stats.bestPercentile)) + "%</b>" : "")
+    ? "Streak <b>" + stats.streak + "</b> · rallies <b>" + stats.days + "</b> · attempts <b>" + stats.attempts + "</b>"
     : "First time? Tap <b>Controls</b> — then trust the co-driver.";
   els.nextIn.textContent = fmtCountdown(msUntilReset());
   syncToggles();
@@ -288,7 +272,7 @@ els.btnRetry.addEventListener("click", () => startRun(false));
 els.btnMenu.addEventListener("click", showMenu);
 els.btnShare.addEventListener("click", () => {
   const rec = records.getDayRecord(S.day);
-  const text = records.shareText(S.stage, rec, S.field);
+  const text = records.shareText(S.stage, rec);
   const done = () => {
     els.btnShare.textContent = "Copied!";
     setTimeout(() => { els.btnShare.textContent = "Share"; }, 1400);
@@ -369,16 +353,13 @@ function finishRun() {
     flags = records.recordRun(S.day, {
       time, splits: S.splitTimes.slice(), sectors, ghost: ghostB64,
     });
-    const pct = S.field.percentile(time);
-    if (flags.newBest) records.notePercentile(pct);
   }
   S.lastResult = { time, sectors, flags, prevSectors, prevBest: prevRec.best };
   showResults();
 }
 
 function showResults() {
-  const { time, sectors, flags, prevSectors, prevBest } = S.lastResult;
-  const f = S.field;
+  const { time, sectors, flags, prevSectors } = S.lastResult;
   const rec = records.getDayRecord(S.day);
   showScreen("results");
   els.resKicker.textContent = (S.mode === "daily" ? "Daily Rally #" + S.stage.number : "Practice") +
@@ -403,14 +384,9 @@ function showResults() {
     els.resDelta.textContent = "";
   }
 
-  // rank / percentile / WR gap
-  const pct = f.percentile(time);
-  const pctText = pct < 1 ? "top " + pct.toFixed(1) + "%" : "top " + Math.ceil(pct) + "%";
+  // sectors, graded against the stage's ideal pace and compared to your best
+  const ideals = records.sectorIdeals(S.stage);
   let grid = "";
-  grid += resCell("Rank", "#" + f.rank(time).toLocaleString());
-  grid += resCell("Field", pctText);
-  grid += resCell("To WR", fmtDelta(time - f.wr), time - f.wr <= 0 ? "up" : "");
-  // sectors
   for (let i = 0; i < 3; i++) {
     let cls = "", val = fmtTime(sectors[i]);
     if (prevSectors && prevSectors[i] > 0) {
@@ -418,25 +394,9 @@ function showResults() {
       cls = d <= 0 ? "up" : "down";
       val += " <span style='font-size:11px'>" + fmtDelta(d) + "</span>";
     }
-    grid += resCell("Sector " + (i + 1), val, cls);
+    grid += resCell("Sector " + (i + 1) + " " + records.sectorEmoji(sectors[i], ideals[i]), val, cls);
   }
   els.resGrid.innerHTML = grid;
-  els.resSimNote.textContent = S.mode === "daily" ? "rank & field are a simulated distribution — same for every player today" : "";
-
-  // rivals
-  const rows = f.rivals.map((r) => ({ nm: r.name, tm: r.time, cls: "" }));
-  rows.push({ nm: "You", tm: rec.best != null ? rec.best : time, cls: "you" });
-  rows.sort((a, b) => a.tm - b.tm);
-  let rv = "<h3>Rivals (sim)</h3>";
-  let youIdx = rows.findIndex((r) => r.cls === "you");
-  for (const row of rows) {
-    rv += "<div class='lbrow " + row.cls + "'><span class='nm'>" + row.nm + "</span><span class='tm'>" + fmtTime(row.tm) + "</span></div>";
-  }
-  if (youIdx > 0) {
-    const gap = rows[youIdx].tm - rows[youIdx - 1].tm;
-    rv += "<div class='lbrow'><span class='nm' style='color:var(--dim)'>" + fmtDelta(gap) + " to " + rows[youIdx - 1].nm + "</span><span></span></div>";
-  }
-  els.resRivals.innerHTML = rv;
 
   // most time lost
   let hint = "";

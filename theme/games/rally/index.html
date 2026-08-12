@@ -94,12 +94,6 @@ h1, h2, h3 { margin: 0; font-weight: 800; color: var(--white); }
 }
 .tog.on { color: var(--white); border-color: var(--accent); }
 #nextIn { font-family: var(--mono); }
-.lb { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
-.lb h3 { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
-.lbrow { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
-.lbrow .nm { color: var(--text); }
-.lbrow .tm { font-family: var(--mono); color: var(--white); }
-.lbrow.you .nm, .lbrow.you .tm { color: var(--accent); font-weight: 700; }
 
 /* -------------------------------------------------------------- results */
 #results .panel { text-align: center; }
@@ -118,8 +112,6 @@ h1, h2, h3 { margin: 0; font-weight: 800; color: var(--white); }
 .res-cell .v { font-size: 16px; font-weight: 700; color: var(--white); font-family: var(--mono); margin-top: 2px; }
 .res-cell .v.up { color: var(--good); }
 .res-cell .v.down { color: var(--bad); }
-.sim-note { font-size: 10px; color: var(--dim); margin-top: 2px; }
-#resRivals { text-align: left; margin-top: 4px; }
 .retry-hint { margin-top: 14px; font-size: 13px; color: var(--dim); }
 .retry-hint b { color: var(--white); }
 
@@ -237,7 +229,6 @@ a.back-link:hover { color: var(--white); }
       <button class="tog" id="togGhost">Ghost</button>
       <button class="tog" id="togQuality">Quality: High</button>
     </div>
-    <div class="lb" id="menuLb"></div>
     <p class="menu-note" id="menuStats"></p>
     <p class="menu-note">Next rally in <b id="nextIn">—</b> &nbsp;·&nbsp; <a class="back-link" href="../../games.html">&larr; all games</a></p>
   </div>
@@ -251,8 +242,6 @@ a.back-link:hover { color: var(--white); }
     <div id="resBadges"></div>
     <div class="res-delta" id="resDelta"></div>
     <div class="res-grid" id="resGrid"></div>
-    <div class="sim-note" id="resSimNote"></div>
-    <div class="lb" id="resRivals"></div>
     <div class="row" style="margin-top:16px">
       <button class="btn primary" id="btnRetry">Retry — R</button>
       <button class="btn" id="btnShare">Share</button>

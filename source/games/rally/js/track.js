@@ -193,7 +193,7 @@ function buildPlan(r, env, targetLen) {
     if (n >= 2 && lastDirs[n - 1] === lastDirs[n - 2]) {
       leftP = lastDirs[n - 1] === 1 ? 0.2 : 0.8;   // avoid 3 in a row
     }
-    return r.chance(leftP) ? 1 : -1;          // 1 = left
+    return r.chance(leftP) ? 1 : -1;          // 1 = positive curvature
   }
 
   function corner(sev, opts) {
@@ -345,10 +345,10 @@ function compile(plan, r, env) {
         vertMarks.push({ s: at, kind: op.vert });
       }
     } else if (op.t === "corner") {
-      const k1 = op.dir / op.radius;      // left = positive curvature
+      const k1 = op.dir / op.radius;      // dir = 1: positive curvature (a screen-right corner)
       const Lc = Math.min(40, Math.max(8, op.radius * 0.45));
-      // cross-slope tan, dy per metre leftward. Helpful banking = outside edge
-      // high: for a left corner that means right side high -> negative slope.
+      // cross-slope tan, dy per metre toward +d. Helpful banking = outside
+      // edge high: the outside of a dir=1 corner is the -d side, so negative.
       const camber = -op.dir * op.camber;
       const noteS = sCursor;              // note anchored at entry clothoid start
 
@@ -548,7 +548,8 @@ function makeRoadQuery(stage) {
     const tx = Math.cos(geo.heading[i0]), tz = Math.sin(geo.heading[i0]);
     const ox = px - (x[i0] + (x[i1] - x[i0]) * bt);
     const oz = pz - (z[i0] + (z[i1] - z[i0]) * bt);
-    // signed lateral offset: positive = left of direction of travel
+    // signed lateral offset along the +normal (-sin h, cos h), which appears
+    // to the RIGHT of the direction of travel in the Y-up render frame
     const d = tx * oz - tz * ox > 0 ? Math.sqrt(bd2) : -Math.sqrt(bd2);
     return {
       s: (i0 + bt) * DS,
@@ -681,8 +682,9 @@ function buildNotes(stage) {
   const notes = [];
 
   for (const m of marks) {
-    const dirWord = m.dir === 1 ? "left" : "right";
-    const dirCh = m.dir === 1 ? "L" : "R";
+    // dir = 1 is positive curvature, which renders as a screen-RIGHT turn
+    const dirWord = m.dir === 1 ? "right" : "left";
+    const dirCh = m.dir === 1 ? "R" : "L";
     let label, spoken;
     if (m.sev === "hp") { label = dirCh + " hairpin"; spoken = "hairpin " + dirWord; }
     else if (m.sev === "sq") { label = dirCh + " square"; spoken = "square " + dirWord; }
@@ -846,7 +848,7 @@ function buildScenery(stage, r) {
     const midS = (nt.s + nt.endS) / 2;
     const i = Math.min(geo.n - 1, Math.round(midS / DS));
     const tx = Math.cos(geo.heading[i]), tz = Math.sin(geo.heading[i]);
-    const inSide = nt.dir === 1 ? 1 : -1;   // left corner: inside is left (+d)
+    const inSide = nt.dir === 1 ? 1 : -1;   // dir=1 corner: inside is the +d side
 
     if (nt.label.indexOf("don't cut") >= 0) {
       const span = Math.min(nt.endS - nt.s, 60);
