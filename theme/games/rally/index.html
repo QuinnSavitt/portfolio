@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Daily Rally</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="One car. One road. One day. Fastest time wins. A new procedurally generated rally stage every day, in your browser.">
+<meta name="theme-color" content="#12171f">
+<link rel="icon" href="../../images/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800">
+<style>
+:root {
+  --bg: #12171f;
+  --panel: #1e2530;
+  --panel-2: #293342;
+  --line: #333f52;
+  --accent: #fa6862;
+  --text: #cfd6e4;
+  --dim: #8b97ab;
+  --white: #fff;
+  --good: #7fc6a1;
+  --bad: #e88;
+  --mono: "Consolas", "Menlo", monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%; overflow: hidden;
+  background: var(--bg); color: var(--text);
+  font-family: "Open Sans", system-ui, sans-serif;
+}
+button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+h1, h2, h3 { margin: 0; font-weight: 800; color: var(--white); }
+
+#gl { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
+
+.screen {
+  position: fixed; inset: 0; display: none; z-index: 20;
+  align-items: center; justify-content: center;
+  background: rgba(10, 14, 20, 0.78);
+  backdrop-filter: blur(3px);
+}
+.screen.on { display: flex; }
+.panel {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 26px 28px;
+}
+.kicker { font-size: 11px; letter-spacing: 2.4px; color: var(--accent); text-transform: uppercase; font-weight: 700; }
+.btn {
+  display: inline-block; border: 1px solid var(--line); border-radius: 4px;
+  padding: 0 20px; line-height: 44px; font-size: 13px; font-weight: 700;
+  letter-spacing: 1.4px; text-transform: uppercase; color: var(--white);
+  background: var(--panel-2); text-align: center; text-decoration: none;
+}
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); border-color: var(--accent); }
+.btn.ghostbtn { background: transparent; color: var(--dim); }
+.btn.wide { display: block; width: 100%; }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; }
+
+/* ------------------------------------------------------------- loading */
+#loading .panel { text-align: center; }
+.spinner {
+  margin: 18px auto 8px; width: 44px; height: 44px; border-radius: 50%;
+  border: 3px solid var(--line); border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loadStatus { font-size: 12px; color: var(--dim); }
+
+/* --------------------------------------------------------------- menu */
+.stage-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.stage-head h1 { font-size: 26px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stage-sub { font-size: 15px; color: var(--dim); margin-top: 2px; }
+.stage-sub b { color: var(--white); }
+.facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); margin: 16px 0; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.fact { background: var(--panel-2); padding: 9px 11px; }
+.fact .k { font-size: 9px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--dim); }
+.fact .v { font-size: 15px; font-weight: 700; color: var(--white); margin-top: 1px; white-space: nowrap; }
+.recrow { display: flex; gap: 10px; margin: 14px 0; }
+.rec { flex: 1; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 9px 12px; }
+.rec .k { font-size: 9px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--dim); }
+.rec .v { font-size: 21px; font-weight: 800; color: var(--white); font-family: var(--mono); }
+.rec .v.dim { color: var(--dim); font-size: 15px; }
+.menu-note { font-size: 11.5px; color: var(--dim); margin: 10px 0 0; line-height: 1.5; }
+.menu-note b { color: var(--text); }
+.toggles { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+.tog {
+  font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
+  border: 1px solid var(--line); border-radius: 3px; padding: 6px 10px; color: var(--dim);
+}
+.tog.on { color: var(--white); border-color: var(--accent); }
+#nextIn { font-family: var(--mono); }
+.lb { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.lb h3 { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+.lbrow { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+.lbrow .nm { color: var(--text); }
+.lbrow .tm { font-family: var(--mono); color: var(--white); }
+.lbrow.you .nm, .lbrow.you .tm { color: var(--accent); font-weight: 700; }
+
+/* -------------------------------------------------------------- results */
+#results .panel { text-align: center; }
+.bigtime { font-size: 52px; font-weight: 800; color: var(--white); font-family: var(--mono); line-height: 1.05; }
+.res-badge {
+  display: inline-block; margin: 6px 4px 0; padding: 4px 12px; border-radius: 3px;
+  font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; font-weight: 800;
+}
+.res-badge.pb { background: var(--accent); color: #fff; }
+.res-badge.blind { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+.res-badge.invalid { background: #5c2b2b; color: #f0b0b0; }
+.res-delta { font-size: 15px; font-family: var(--mono); margin-top: 6px; }
+.res-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; margin: 16px 0 10px; }
+.res-cell { background: var(--panel-2); padding: 10px 6px; }
+.res-cell .k { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); }
+.res-cell .v { font-size: 16px; font-weight: 700; color: var(--white); font-family: var(--mono); margin-top: 2px; }
+.res-cell .v.up { color: var(--good); }
+.res-cell .v.down { color: var(--bad); }
+.sim-note { font-size: 10px; color: var(--dim); margin-top: 2px; }
+#resRivals { text-align: left; margin-top: 4px; }
+.retry-hint { margin-top: 14px; font-size: 13px; color: var(--dim); }
+.retry-hint b { color: var(--white); }
+
+/* ----------------------------------------------------------------- HUD */
+.hud { position: fixed; z-index: 10; pointer-events: none; user-select: none; }
+#stageTag {
+  top: 12px; left: 14px; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase;
+  color: rgba(255,255,255,0.75); font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+#timerWrap { top: 10px; left: 50%; transform: translateX(-50%); text-align: center; }
+#timer {
+  font-family: var(--mono); font-size: 34px; font-weight: 700; color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.55);
+}
+#delta { font-family: var(--mono); font-size: 17px; font-weight: 700; min-height: 22px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+#delta.ahead { color: #8ce8a8; }
+#delta.behind { color: #ff9c94; }
+#notesStrip {
+  top: 86px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; align-items: center;
+}
+.chip {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: rgba(12, 16, 24, 0.72); border-radius: 5px; padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.12); min-width: 74px;
+}
+.chip .sev { font-size: 17px; font-weight: 800; letter-spacing: 0.5px; }
+.chip .mods { font-size: 9.5px; letter-spacing: 0.6px; color: #cfd6e4; text-transform: uppercase; max-width: 110px; text-align: center; }
+.chip .m { font-size: 10.5px; color: #8b97ab; font-family: var(--mono); }
+.chip.first { transform: scale(1.12); border-color: rgba(255,255,255,0.35); }
+.chip.caution { border-color: #e0a82c; }
+#speedWrap { right: 18px; bottom: 16px; text-align: right; text-shadow: 0 2px 5px rgba(0,0,0,0.55); }
+#speed { font-family: var(--mono); font-size: 38px; font-weight: 800; color: #fff; line-height: 1; }
+#speedUnit { font-size: 11px; letter-spacing: 1.5px; color: rgba(255,255,255,0.7); text-transform: uppercase; }
+#gear { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--accent); margin-top: 2px; }
+#damageBar { right: 18px; bottom: 108px; width: 120px; height: 5px; background: rgba(255,255,255,0.16); border-radius: 2px; overflow: hidden; display: none; }
+#damageFill { height: 100%; width: 0; background: var(--accent); }
+#splitPop {
+  left: 18px; bottom: 16px; font-family: var(--mono); font-size: 16px;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.6); line-height: 1.5; white-space: pre;
+}
+#centerMsg {
+  top: 34%; left: 50%; transform: translate(-50%, -50%); text-align: center;
+  font-weight: 800; color: #fff; text-shadow: 0 3px 10px rgba(0,0,0,0.6);
+}
+#centerMsg .big { font-size: 84px; letter-spacing: 4px; }
+#centerMsg .warn { font-size: 26px; letter-spacing: 3px; text-transform: uppercase; color: #ffd76a; }
+#centerMsg .bad { font-size: 26px; letter-spacing: 3px; text-transform: uppercase; color: #ff8a80; }
+#centerMsg .sub { font-size: 14px; letter-spacing: 2px; color: rgba(255,255,255,0.8); margin-top: 8px; }
+#pauseHint { bottom: 14px; left: 50%; transform: translateX(-50%); font-size: 10.5px; letter-spacing: 1.6px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+
+/* --------------------------------------------------------------- help */
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 7px 16px; margin: 14px 0; font-size: 13.5px; }
+.keys kbd {
+  font-family: var(--mono); background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 3px; padding: 2px 9px; font-size: 12px; color: var(--white); text-align: center;
+}
+a.back-link { color: var(--dim); font-size: 12px; text-decoration: none; }
+a.back-link:hover { color: var(--white); }
+</style>
+</head>
+<body>
+
+<canvas id="gl"></canvas>
+
+<!-- HUD -->
+<div class="hud" id="stageTag"></div>
+<div class="hud" id="timerWrap">
+  <div id="timer">0.000</div>
+  <div id="delta"></div>
+</div>
+<div class="hud" id="notesStrip"></div>
+<div class="hud" id="speedWrap">
+  <div id="speed">0</div>
+  <div id="speedUnit">km/h</div>
+  <div id="gear">N</div>
+</div>
+<div class="hud" id="damageBar"><div id="damageFill"></div></div>
+<div class="hud" id="splitPop"></div>
+<div class="hud" id="centerMsg"></div>
+<div class="hud" id="pauseHint" style="display:none">R restart &nbsp;·&nbsp; C camera &nbsp;·&nbsp; Esc menu</div>
+
+<!-- LOADING -->
+<div class="screen on" id="loading">
+  <div class="panel">
+    <div class="kicker">Daily Rally</div>
+    <h2 style="margin-top:6px">Building today's stage</h2>
+    <div class="spinner"></div>
+    <div id="loadStatus">generating candidates…</div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="menu">
+  <div class="panel">
+    <div class="kicker" id="menuKicker">Daily Rally</div>
+    <div class="stage-head">
+      <h1 id="menuTitle">#—</h1>
+    </div>
+    <div class="stage-sub" id="menuSub"></div>
+    <div class="facts" id="menuFacts"></div>
+    <div class="recrow">
+      <div class="rec"><div class="k">Blind run</div><div class="v" id="menuBlind">—</div></div>
+      <div class="rec"><div class="k">Best</div><div class="v" id="menuBest">—</div></div>
+      <div class="rec"><div class="k">Attempts</div><div class="v" id="menuAttempts">0</div></div>
+    </div>
+    <button class="btn primary wide" id="btnDrive">Drive</button>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnPractice">Practice random</button>
+      <button class="btn" id="btnHelp">Controls</button>
+    </div>
+    <div class="toggles">
+      <button class="tog" id="togAudio">Audio</button>
+      <button class="tog" id="togVoice">Co-driver</button>
+      <button class="tog" id="togGhost">Ghost</button>
+      <button class="tog" id="togQuality">Quality: High</button>
+    </div>
+    <div class="lb" id="menuLb"></div>
+    <p class="menu-note" id="menuStats"></p>
+    <p class="menu-note">Next rally in <b id="nextIn">—</b> &nbsp;·&nbsp; <a class="back-link" href="../../games.html">&larr; all games</a></p>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="results">
+  <div class="panel">
+    <div class="kicker" id="resKicker">Stage complete</div>
+    <div class="bigtime" id="resTime">--.---</div>
+    <div id="resBadges"></div>
+    <div class="res-delta" id="resDelta"></div>
+    <div class="res-grid" id="resGrid"></div>
+    <div class="sim-note" id="resSimNote"></div>
+    <div class="lb" id="resRivals"></div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" id="btnRetry">Retry — R</button>
+      <button class="btn" id="btnShare">Share</button>
+      <button class="btn ghostbtn" id="btnMenu">Menu</button>
+    </div>
+    <div class="retry-hint" id="resHint"></div>
+  </div>
+</div>
+
+<!-- HELP -->
+<div class="screen" id="help">
+  <div class="panel">
+    <div class="kicker">Controls</div>
+    <h2 style="margin-top:6px">How to drive</h2>
+    <div class="keys">
+      <kbd>W / ↑</kbd><span>Throttle</span>
+      <kbd>S / ↓</kbd><span>Brake · reverse</span>
+      <kbd>A / ←</kbd><span>Steer left</span>
+      <kbd>D / →</kbd><span>Steer right</span>
+      <kbd>Space</kbd><span>Handbrake — rotate for hairpins</span>
+      <kbd>R</kbd><span>Instant restart</span>
+      <kbd>C</kbd><span>Camera</span>
+      <kbd>G</kbd><span>Toggle ghost</span>
+      <kbd>N</kbd><span>Mute co-driver</span>
+      <kbd>M</kbd><span>Mute all audio</span>
+      <kbd>Esc</kbd><span>Menu</span>
+    </div>
+    <p class="menu-note">
+      Trust the co-driver: <b>"left four"</b> is fast, <b>"left one"</b> is barely a corner off idle.
+      Numbers run 1 (slowest) to 6 (flat). <b>Tap</b> to place the car, <b>hold</b> to rotate it,
+      tap the opposite way to catch a slide. Cutting is allowed unless the call says
+      <b>don't cut</b>. Your first completed run of the day is your <b>blind run</b> — it can
+      never be replaced, so make it count.
+    </p>
+    <button class="btn wide" id="btnCloseHelp" style="margin-top:14px">Got it</button>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./lib/three.module.min.js" } }
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

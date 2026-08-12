@@ -1,0 +1,49 @@
+@@include('header.htm')
+
+<main class="site-wrapper">
+  <div class="pt-table">
+    <div class="pt-tablecell page-games relative">
+      <!-- .close -->
+      <a href="./" class="page-close"><i class="tf-ion-close"></i></a>
+      <!-- /.close -->
+
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12 col-md-offset-1 col-md-10 col-lg-offset-2 col-lg-8">
+            <div class="page-title text-center">
+              <h2>My <span class="primary">games</span> <span class="title-bg">games</span></h2>
+            </div>
+          </div>
+        </div> <!-- /.row -->
+
+        <div class="row">
+          <div class="col-xs-12 text-center">
+            <ul class="games-view" id="games-view">
+              <li><a href="#all" class="link active" data-view="all">All Games</a></li>
+              <li><a href="#daily" class="link" data-view="daily">Daily</a></li>
+            </ul>
+            <p class="games-note" id="games-note"></p>
+          </div>
+        </div> <!-- /.row -->
+
+        <div class="row games-grid" id="games-grid"></div>
+
+        <div class="row">
+          <div class="col-xs-12 text-center">
+            <p class="games-empty" id="games-empty" style="display: none;">
+              No daily games are live yet &mdash; check back soon.
+            </p>
+            <noscript>
+              <p class="games-empty">This page needs JavaScript to list the games.</p>
+            </noscript>
+          </div>
+        </div> <!-- /.row -->
+      </div> <!-- /.container -->
+
+    </div> <!-- /.pt-tablecell -->
+  </div> <!-- /.pt-table -->
+</main> <!-- /.site-wrapper -->
+
+<script src="js/games.js"></script>
+
+@@include('footer.htm')

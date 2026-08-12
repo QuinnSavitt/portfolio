@@ -63,3 +63,33 @@ $primary-color: #FA6862;
 .service-hex:hover .st1 {
   	fill: $primary-color;
 }
+
+/* games page */
+.games-view .active,
+.game-item h4 {
+  	color: $primary-color;
+}
+
+.games-view .active {
+  	border-bottom-color: $primary-color;
+}
+
+.game-badge.daily,
+.game-item:hover .game-hex,
+.game-play:hover,
+.game-play:focus {
+  	background-color: $primary-color;
+}
+
+.game-play:hover,
+.game-play:focus {
+  	border-color: $primary-color;
+}
+
+.game-item:hover .game-hex::before {
+  	border-bottom-color: $primary-color;
+}
+
+.game-item:hover .game-hex::after {
+  	border-top-color: $primary-color;
+}

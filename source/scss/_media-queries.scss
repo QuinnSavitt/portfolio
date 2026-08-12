@@ -149,9 +149,7 @@
 
 	.page-home {
 
-		.hexagon-item:nth-last-child(1),
-		.hexagon-item:nth-last-child(2),
-		.hexagon-item:nth-last-child(3) {
+		.hexagon-item:nth-child(n + 5) {
 			@include transform (rotate(30deg) translate(0px, 0px));
 		}
 	}

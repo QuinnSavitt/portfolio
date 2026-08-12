@@ -64,4 +64,34 @@
 .service-hex:hover .st1 {
   fill: #F3A36D;
 }
+
+/* games page */
+.games-view .active,
+.game-item h4 {
+  color: #F3A36D;
+}
+
+.games-view .active {
+  border-bottom-color: #F3A36D;
+}
+
+.game-badge.daily,
+.game-item:hover .game-hex,
+.game-play:hover,
+.game-play:focus {
+  background-color: #F3A36D;
+}
+
+.game-play:hover,
+.game-play:focus {
+  border-color: #F3A36D;
+}
+
+.game-item:hover .game-hex::before {
+  border-bottom-color: #F3A36D;
+}
+
+.game-item:hover .game-hex::after {
+  border-top-color: #F3A36D;
+}
 /*# sourceMappingURL=yellow.css.map */

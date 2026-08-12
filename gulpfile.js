@@ -25,7 +25,7 @@ var path = {
     images: "source/images/**/*.+(png|jpg|gif|svg)",
     fonts: "source/fonts/**/*.+(eot|ttf|woff|woff2|otf)",
     proofs: "source/proofs/**/*.*",
-    chess: "source/chess/**/*.*",
+    games: "source/games/**/*.*",
   },
   build: {
     dirBuild: "theme/",
@@ -178,10 +178,11 @@ gulp.task("clean", function (cb) {
   rimraf("./theme", cb);
 });
 
-gulp.task("chess:build", function () {
+// Games (standalone, not run through file-include)
+gulp.task("games:build", function () {
   return gulp
-    .src(path.src.chess)
-    .pipe(gulp.dest(path.build.dirDev + "chess/"))
+    .src(path.src.games)
+    .pipe(gulp.dest(path.build.dirDev + "games/"))
     .pipe(
       bs.reload({
         stream: true,
@@ -211,7 +212,7 @@ gulp.task("watch:build", function () {
   gulp.watch(path.src.fonts, gulp.series("fonts:build"));
   gulp.watch(path.src.plugins, gulp.series("plugins:build"));
   gulp.watch(path.src.proofs, gulp.series("proofs:build"));
-  gulp.watch(path.src.chess, gulp.series("chess:build"));
+  gulp.watch(path.src.games, gulp.series("games:build"));
 });
 
 // Dev Task
@@ -227,6 +228,7 @@ gulp.task(
     "plugins:build",
     "others:build",
     "proofs:build",
+    "games:build",
     gulp.parallel("watch:build", function () {
       bs.init({
         server: {
@@ -248,6 +250,6 @@ gulp.task(
     "fonts:build",
     "plugins:build",
     "proofs:build",
-    "chess:build",
+    "games:build",
   )
 );

@@ -1,0 +1,234 @@
+/*------------------------------------------------
+    Games Page
+-------------------------------------------------*/
+.page-games {
+  .page-title {
+    margin-bottom: 22px;
+  }
+}
+
+// View switch (All / Daily)
+.games-view {
+  display: inline-block;
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  li {
+    display: inline-block;
+    margin: 0 12px;
+  }
+  a {
+    border-bottom: 2px solid transparent;
+    display: inline-block;
+    font-family: $open-sans;
+    font-size: 14px;
+    letter-spacing: 1px;
+    padding-bottom: 2px;
+    text-transform: uppercase;
+  }
+  .active {
+    border-bottom-color: $primary-color;
+    color: $primary-color;
+  }
+}
+
+.games-note {
+  font-family: $open-sans;
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-bottom: 30px;
+  min-height: 22px;
+  text-transform: uppercase;
+  b {
+    color: $title-color;
+    font-weight: 600;
+  }
+}
+
+.games-empty {
+  font-family: $open-sans;
+  font-size: 14px;
+  margin-bottom: 40px;
+}
+
+// Flex row so every card in a row is the same height whatever the tagline
+// length, and so a part-full last row stays centred.
+.games-grid {
+  @include flexbox();
+  @include flex-wrap(wrap);
+  @include justify-content(center);
+  // bootstrap's clearfix pseudo elements would become flex items here
+  &::before,
+  &::after {
+    display: none;
+  }
+  & > div {
+    margin-bottom: 30px;
+    @include flexbox();
+  }
+}
+
+// Game card
+.game-item {
+  background-color: $light-dark;
+  font-family: $open-sans;
+  padding: 28px 20px 26px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+  @include flexbox();
+  @include flex-direction(column);
+  @include transition(all 0.3s ease 0s);
+
+  // decorative only - without this it sits over the play button and eats clicks
+  &::before {
+    border: 1px solid rgba($light, 0.08);
+    bottom: 12px;
+    content: "";
+    left: 12px;
+    pointer-events: none;
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    @include transition(all 0.3s ease 0s);
+  }
+
+  h4 {
+    color: $primary-color;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.96px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  // grows to fill the tallest card in the row, keeping the badges and
+  // the button on a common baseline across the row
+  .game-tagline {
+    color: #aaaaaa;
+    font-size: 13px;
+    line-height: 22px;
+    margin-bottom: 15px;
+    @include flex-grow(1);
+  }
+
+  &:hover {
+    &::before {
+      bottom: 8px;
+      left: 8px;
+      right: 8px;
+      top: 8px;
+    }
+    .game-hex {
+      background-color: $primary-color;
+      &::before {
+        border-bottom-color: $primary-color;
+      }
+      &::after {
+        border-top-color: $primary-color;
+      }
+    }
+  }
+}
+
+// Hexagon icon holder, same construction as the contact/history hexes
+.game-hex {
+  background-color: #293342;
+  display: block;
+  height: 32.33px;
+  margin: 16.16px auto 24px;
+  position: relative;
+  width: 56px;
+  @include transition(all 0.3s ease 0s);
+  // left is explicit because the card centres its text, which would
+  // otherwise shift the static position of these two triangles.
+  &::before,
+  &::after {
+    border-left: 28px solid transparent;
+    border-right: 28px solid transparent;
+    content: "";
+    left: 0;
+    position: absolute;
+    width: 0;
+    @include transition(all 0.3s ease 0s);
+  }
+  &::before {
+    border-bottom: 16.16px solid #293342;
+    bottom: 100%;
+  }
+  &::after {
+    border-top: 16.16px solid #293342;
+    top: 100%;
+  }
+  i {
+    color: $light;
+    font-size: 24px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    @include transform(translate(-50%, -50%));
+  }
+}
+
+// Fixed line-height so a card with no badges is exactly as tall as one with.
+.game-meta {
+  line-height: 20px;
+  min-height: 22px;
+}
+
+.game-badge {
+  border-radius: 2px;
+  color: #cfd6e4;
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 1px;
+  line-height: 20px;
+  margin: 0 1px;
+  padding: 0 8px;
+  text-transform: uppercase;
+  vertical-align: top;
+  background-color: #293342;
+  &.daily {
+    background-color: $primary-color;
+    color: $light;
+  }
+  &.soon {
+    background-color: transparent;
+    border: 1px solid #3a465c;
+    color: #8b97ab;
+    line-height: 18px;
+  }
+  &.played {
+    background-color: transparent;
+    border: 1px solid #4a7f63;
+    color: #7fc6a1;
+    line-height: 18px;
+  }
+}
+
+.game-play {
+  border: 1px solid rgba($light, 0.25);
+  color: $light;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 34px;
+  margin-top: 18px;
+  padding: 0 26px;
+  text-transform: uppercase;
+  @include align-self(center);
+  &:hover,
+  &:focus {
+    background-color: $primary-color;
+    border-color: $primary-color;
+    color: $light;
+  }
+  &.disabled {
+    border-style: dashed;
+    color: #8b97ab;
+    cursor: default;
+    pointer-events: none;
+  }
+}
