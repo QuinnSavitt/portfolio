@@ -317,10 +317,12 @@ export function buildWorld(stage, opts) {
     }
 
     function groundAt(i, lat) {
-      // lat: signed lateral in metres
+      // lat: signed lateral in metres. Resolved against the sample we are
+      // actually drawing rather than by nearest-point search, which snaps to
+      // the wrong leg of the course out here and hangs terrain in the air.
       const hx = -Math.sin(geo.heading[i]), hz = Math.cos(geo.heading[i]);
       const px = geo.x[i] + hx * lat, pz = geo.z[i] + hz * lat;
-      const g = stage.groundHeight(px, pz, i * DS);
+      const g = stage.groundAtSample(i, lat, px, pz);
       return { x: px, y: g ? g.y : geo.y[i], z: pz };
     }
 

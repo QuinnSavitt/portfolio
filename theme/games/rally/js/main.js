@@ -698,6 +698,17 @@ setInterval(() => {
   if (els.nextIn) els.nextIn.textContent = fmtCountdown(msUntilReset());
 }, 1000);
 
+/* expose for automated checks (same idea as DRGame in Daily Rocket) */
+window.__RALLY = {
+  get car() { return S.car; },
+  get stage() { return S.stage; },
+  get state() { return S.state; },
+  get day() { return S.day; },
+  get camera() { return S.camera; },
+  get world() { return S.world; },
+  THREE,
+};
+
 /* off we go */
 console.log("Daily Rally modules v" + (window.__DR_VERSION || "?") + " — main.js loaded");
 boot();

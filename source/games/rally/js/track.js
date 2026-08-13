@@ -513,6 +513,89 @@ function buildGrid(geo) {
   return grid;
 }
 
+/* Regional ground elevation as a function of position alone.
+ *
+ * Terrain height used to be "the elevation of whichever road sample you asked
+ * from, plus noise". Where the road climbs a hillside that made every section
+ * drag the ground up with it, so two legs 50 m apart disagreed about the
+ * height of the same patch by 10-15 m: overlapping shelves, slabs of hillside
+ * hanging in the sky, and road buried under the neighbouring leg's terrain.
+ *
+ * This is a distance-weighted average of nearby road elevations, sampled onto
+ * a coarse grid at build time and bilinearly interpolated. Single-valued by
+ * construction, so every part of the stage agrees on where the ground is.
+ * Close to the road the nearest samples dominate and it returns the local road
+ * elevation, which keeps the shoulder joins seamless. */
+function makeElevField(stage) {
+  const geo = stage.geo;
+  const STEPF = 10;             // grid resolution, metres
+  const REACH = 110;            // samples further than this do not contribute
+  const SOFT = 30 * 30;         // softening so the weight never blows up
+  let field = null, nx = 0, nz = 0, x0 = 0, z0 = 0;
+
+  /* Built on first use, not at generation time: stage selection auditions up
+   * to four candidates and only the survivor is ever drawn. */
+  function build() {
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    for (let i = 0; i < geo.n; i++) {
+      if (geo.x[i] < minX) minX = geo.x[i];
+      if (geo.x[i] > maxX) maxX = geo.x[i];
+      if (geo.z[i] < minZ) minZ = geo.z[i];
+      if (geo.z[i] > maxZ) maxZ = geo.z[i];
+    }
+    const PAD = 90;
+    x0 = minX - PAD; z0 = minZ - PAD;
+    nx = Math.ceil((maxX - minX + PAD * 2) / STEPF) + 1;
+    nz = Math.ceil((maxZ - minZ + PAD * 2) / STEPF) + 1;
+    field = new Float32Array(nx * nz);
+
+    // bucket the samples so each cell only visits road that could reach it
+    const BUCKET = REACH;
+    const buckets = new Map();
+    for (let i = 0; i < geo.n; i++) {
+      const k = Math.floor(geo.x[i] / BUCKET) + "," + Math.floor(geo.z[i] / BUCKET);
+      let arr = buckets.get(k);
+      if (!arr) buckets.set(k, (arr = []));
+      arr.push(i);
+    }
+    const R2 = REACH * REACH;
+    for (let gz = 0; gz < nz; gz++) {
+      const pz = z0 + gz * STEPF;
+      for (let gx = 0; gx < nx; gx++) {
+        const px = x0 + gx * STEPF;
+        const bx = Math.floor(px / BUCKET), bz = Math.floor(pz / BUCKET);
+        let num = 0, den = 0;
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dz = -1; dz <= 1; dz++) {
+            const arr = buckets.get((bx + dx) + "," + (bz + dz));
+            if (!arr) continue;
+            for (let k = 0; k < arr.length; k++) {
+              const i = arr[k];
+              const ddx = geo.x[i] - px, ddz = geo.z[i] - pz;
+              const d2 = ddx * ddx + ddz * ddz;
+              if (d2 > R2) continue;
+              const w = 1 / (d2 + SOFT);
+              num += w * geo.y[i]; den += w;
+            }
+          }
+        }
+        field[gz * nx + gx] = den > 0 ? num / den : 0;
+      }
+    }
+  }
+
+  return function elevAt(px, pz) {
+    if (!field) build();
+    const fx = Math.max(0, Math.min(nx - 1.001, (px - x0) / STEPF));
+    const fz = Math.max(0, Math.min(nz - 1.001, (pz - z0) / STEPF));
+    const ix = Math.floor(fx), iz = Math.floor(fz);
+    const tx = fx - ix, tz = fz - iz;
+    const a = field[iz * nx + ix], b = field[iz * nx + ix + 1];
+    const c = field[(iz + 1) * nx + ix], d = field[(iz + 1) * nx + ix + 1];
+    return (a * (1 - tx) + b * tx) * (1 - tz) + (c * (1 - tx) + d * tx) * tz;
+  };
+}
+
 function makeRoadQuery(stage) {
   const { geo, grid } = stage;
   const { x, z, n } = geo;
@@ -578,10 +661,42 @@ function makeRoadQuery(stage) {
 }
 
 function makeGroundHeight(stage) {
-  const q = stage.roadQuery, terr = stage.terrain, env = stage.env;
+  const q = stage.roadQuery;
+
+  /* The surface profile across the road, given an already-resolved road
+   * association. Split out so the world builder can ask for the height of a
+   * point whose sample and lateral offset it already knows. */
+  const surface = makeSurface(stage);
+
+  /* Height for a point belonging to a KNOWN sample and lateral offset.
+   *
+   * The world builder draws terrain skirts out to ~60 m, well past the road
+   * query's search radius, and the query stops at the first sample it finds -
+   * so a far vertex would resolve against whichever leg of the course happened
+   * to be nearer and inherit that leg's elevation, leaving slabs of hillside
+   * hanging in mid-air. The builder knows exactly what it is drawing, so it
+   * should never re-derive the association by proximity. */
+  stage.groundAtSample = function (i, lat, px, pz) {
+    const geo = stage.geo;
+    const j = Math.max(0, Math.min(geo.n - 1, i));
+    return surface({
+      s: j * DS, d: lat, y: geo.y[j],
+      hw: stage.hwArr[j], camberT: stage.cambArr[j],
+      grade: geo.grade[j], curv: stage.curvArr[j], flag: stage.flagArr[j],
+      heading: geo.heading[j], idx: j,
+    }, px, pz);
+  };
+
   return function groundHeight(px, pz, hintS) {
     const rq = q(px, pz, hintS);
     if (!rq) return null;
+    return surface(rq, px, pz);
+  };
+}
+
+function makeSurface(stage) {
+  const terr = stage.terrain, env = stage.env, elev = stage.elevField;
+  return function surface(rq, px, pz) {
     const ad = Math.abs(rq.d);
     const hw = rq.hw;
     const edgeY = rq.y + rq.camberT * (rq.d > 0 ? hw : -hw);
@@ -594,7 +709,13 @@ function makeGroundHeight(stage) {
     }
     if (ad <= hw) return { y: roadY, on: "road", rq };
 
-    const terrY = rq.y + terr(px, pz) * Math.min(1, (ad - hw) / 14) ;
+    /* Reference elevation eases from this road's own height to the regional
+     * field over 25 m, so a road cut into a hillside still meets its verge
+     * seamlessly while the ground further out belongs to the landscape rather
+     * than to whichever leg of the course happened to ask. */
+    const fade = Math.min(1, (ad - hw) / 25);
+    const refY = rq.y * (1 - fade) + elev(px, pz) * fade;
+    const terrY = refY + terr(px, pz) * Math.min(1, (ad - hw) / 14);
     if (env.snowbank) {
       // snow berm rises just off the road edge
       const bd = ad - hw;
@@ -1048,6 +1169,7 @@ function generateCandidate(seed, env, targetLen) {
   stage.grid = buildGrid(geo);
   stage.roadQuery = makeRoadQuery(stage);
   stage.terrain = makeTerrain(hash32(seed ^ 0x7455), env);
+  stage.elevField = makeElevField(stage);
   stage.groundHeight = makeGroundHeight(stage);
   stage.notes = buildNotes(stage);
   return stage;
