@@ -265,6 +265,57 @@ export function buildWorld(stage, opts) {
     const STEP = 2;              // road sampled every 2 samples (4 m)
     const offs = [1.0, 1.12, 1.45, 2.2, 4.0, 7.5, 13, 22, 38, 60];  // × hw or absolute-ish
 
+    /* How far the skirt may fan out from each side of each sample.
+     *
+     * The outer rings reach ~60 m, which is wider than a hairpin, so on a
+     * switchback the skirt sails across the gap and lands on the other leg -
+     * carrying this sample's elevation with it and burying that road under a
+     * slab of hillside. Look down each lateral ray for the nearest piece of
+     * course sitting in front of it and stop half way, so the two skirts meet
+     * in the middle instead of overlapping. A straight road finds nothing in
+     * its lateral cone and keeps the full reach. */
+    const reach = [new Float64Array(geo.n), new Float64Array(geo.n)]; // [left, right]
+    {
+      const MAXR = offs[offs.length - 1];
+      for (let i = 0; i < geo.n; i++) {
+        const tx = Math.cos(geo.heading[i]), tz = Math.sin(geo.heading[i]);
+        for (let sIdx = 0; sIdx < 2; sIdx++) {
+          const side = sIdx === 0 ? -1 : 1;
+          const lx = -tz * side, lz = tx * side;
+          let best = MAXR * 2;
+          for (let j = 0; j < geo.n; j += 2) {
+            if (Math.abs(j - i) < 5) continue;
+            const dx = geo.x[j] - geo.x[i], dz = geo.z[j] - geo.z[i];
+            const along = dx * lx + dz * lz;
+            if (along <= 0 || along >= best) continue;
+            // only count road that is genuinely out to the side, not ahead
+            if (Math.abs(dx * tx + dz * tz) > along) continue;
+            best = along;
+          }
+          reach[sIdx][i] = Math.min(MAXR, best / 2);
+        }
+      }
+      // widen nothing, narrow neighbours: keeps the skirt edge from stepping
+      const sm = [new Float64Array(geo.n), new Float64Array(geo.n)];
+      for (let sIdx = 0; sIdx < 2; sIdx++) {
+        for (let i = 0; i < geo.n; i++) {
+          let v = reach[sIdx][i];
+          for (let k = -3; k <= 3; k++) {
+            const j = i + k;
+            if (j >= 0 && j < geo.n) v = Math.min(v, reach[sIdx][j]);
+          }
+          sm[sIdx][i] = v;
+        }
+        reach[sIdx].set(sm[sIdx]);
+      }
+    }
+
+    // clamp a lateral offset to the reach, keeping the shoulder intact
+    function limit(i, lat) {
+      const cap = Math.max(stage.hwArr[i] + 4, reach[lat < 0 ? 0 : 1][i]);
+      return Math.sign(lat) * Math.min(Math.abs(lat), cap);
+    }
+
     function groundAt(i, lat) {
       // lat: signed lateral in metres
       const hx = -Math.sin(geo.heading[i]), hz = Math.cos(geo.heading[i]);
@@ -319,10 +370,10 @@ export function buildWorld(stage, opts) {
       // terrain skirts each side
       for (let side = -1; side <= 1; side += 2) {
         for (let o = 0; o < offs.length - 1; o++) {
-          const l1 = side * (offs[o] <= 2.2 ? hwI * offs[o] : hwI + (offs[o] - 1) );
-          const l2 = side * (offs[o + 1] <= 2.2 ? hwI * offs[o + 1] : hwI + (offs[o + 1] - 1));
-          const m1 = side * (offs[o] <= 2.2 ? hwJ * offs[o] : hwJ + (offs[o] - 1));
-          const m2 = side * (offs[o + 1] <= 2.2 ? hwJ * offs[o + 1] : hwJ + (offs[o + 1] - 1));
+          const l1 = limit(i, side * (offs[o] <= 2.2 ? hwI * offs[o] : hwI + (offs[o] - 1)));
+          const l2 = limit(i, side * (offs[o + 1] <= 2.2 ? hwI * offs[o + 1] : hwI + (offs[o + 1] - 1)));
+          const m1 = limit(j, side * (offs[o] <= 2.2 ? hwJ * offs[o] : hwJ + (offs[o] - 1)));
+          const m2 = limit(j, side * (offs[o + 1] <= 2.2 ? hwJ * offs[o + 1] : hwJ + (offs[o + 1] - 1)));
           const p1 = groundAt(i, l1), p2 = groundAt(i, l2);
           const p3 = groundAt(j, m1), p4 = groundAt(j, m2);
           let col;
@@ -769,7 +820,10 @@ function buildCar(isGhost) {
     hub.rotation.x = Math.PI / 2;
     pivot.add(wheel);
     pivot.add(hub);
-    carGroup.add(pivot);
+    // on bodyGroup, not carGroup: the body carries the roll/pitch attitude, and
+    // wheels parented to carGroup stayed flat while it leaned, so they visibly
+    // came away from the arches
+    bodyGroup.add(pivot);
     wheels.push({ mesh: wheel, pivot, front });
   }
 

@@ -166,6 +166,12 @@
     };
   };
 
+  // keep the stack within reach - there is no recenter button to bail you out
+  Builder.prototype.setPan = function (y) {
+    var limit = (this.canvas.height / (global.devicePixelRatio || 1)) * 0.5;
+    this.panY = Math.max(-limit, Math.min(limit, y));
+  };
+
   // -------------------------------------------------------------- render
 
   Builder.prototype.resize = function () {
@@ -386,6 +392,7 @@
   Builder.prototype.bindInput = function () {
     var self = this;
     var startY = 0, startPan = 0, moved = false, pinch = 0, startZoom = 1;
+    var dragging = false;
 
     function pos(e) {
       var r = self.canvas.getBoundingClientRect();
@@ -395,6 +402,7 @@
 
     function down(e) {
       moved = false;
+      dragging = true;
       var p = pos(e);
       startY = p.y; startPan = self.panY;
       if (e.touches && e.touches.length === 2) {
@@ -405,7 +413,14 @@
       }
     }
 
+    function endDrag() {
+      dragging = false;
+      pinch = 0;
+    }
+
     function move(e) {
+      // only a held drag pans the view - a bare hover must leave it alone
+      if (!dragging) { return; }
       if (e.touches && e.touches.length === 2 && pinch > 0) {
         var d = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
@@ -419,25 +434,29 @@
       var p = pos(e);
       if (Math.abs(p.y - startY) > 8) {
         moved = true;
-        self.panY = startPan + (p.y - startY);
+        self.setPan(startPan + (p.y - startY));
         self.draw();
         e.preventDefault();
       }
     }
 
     function up(e) {
-      pinch = 0;
-      if (moved) { return; }
+      var wasDragging = dragging;
+      endDrag();
+      if (!wasDragging || moved) { return; }
       var p = pos(e.changedTouches ? { touches: e.changedTouches } : e);
       self.tap(p.x, p.y);
     }
 
     this.canvas.addEventListener("mousedown", down);
-    this.canvas.addEventListener("mousemove", move);
     this.canvas.addEventListener("mouseup", up);
     this.canvas.addEventListener("touchstart", down, { passive: true });
     this.canvas.addEventListener("touchmove", move, { passive: false });
     this.canvas.addEventListener("touchend", up);
+    this.canvas.addEventListener("touchcancel", endDrag);
+    // on window so a drag that wanders off the canvas still tracks and still ends
+    global.addEventListener("mousemove", move);
+    global.addEventListener("mouseup", endDrag);
     this.canvas.addEventListener("wheel", function (e) {
       self.zoom = Math.max(0.4, Math.min(3, self.zoom * (e.deltaY < 0 ? 1.12 : 0.89)));
       self.draw();

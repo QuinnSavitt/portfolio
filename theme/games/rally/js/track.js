@@ -454,8 +454,19 @@ function integrate(comp, r, env, seed) {
   for (let pass = 0; pass < 2; pass++) {
     for (let i = 1; i < n - 1; i++) y[i] = (y[i - 1] + 2 * y[i] + y[i + 1]) / 4;
   }
-  // flatten the start pad so the launch is clean
-  for (let i = 0; i < Math.min(n, 25); i++) y[i] = y[Math.min(n - 1, 25)] * (i / 25) * (i / 25) + y[Math.min(n - 1, 25)] * 0; // ease from 0-ish
+  /* Flatten the start pad so the launch is clean. This runs after the smoothing
+   * passes, so the join has to be smooth by construction: a smoothstep weight
+   * is flat at the line and hands over with the natural profile's own gradient.
+   * The quadratic ramp this replaces left a step in gradient at the handover
+   * sharp enough to demand ~20 g of downforce - the car was being thrown into
+   * the air 50 m past the start line on every stage. */
+  const padN = Math.min(n, 25);
+  const yPad = y[0];
+  for (let i = 0; i < padN; i++) {
+    const t = i / padN;
+    const w = t * t * (3 - 2 * t);
+    y[i] = yPad * (1 - w) + y[i] * w;
+  }
   const y0 = y[0];
   for (let i = 0; i < n; i++) y[i] -= y0;
 

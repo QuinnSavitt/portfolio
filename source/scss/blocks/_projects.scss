@@ -41,15 +41,28 @@
   text-align: left;
   @include transition(all 0.3s ease 0s);
 
+  // Fixed-height tile. Without it the thumbnail height follows the source
+  // image's aspect ratio, so the square logos rendered as huge blocks - and at
+  // col-xs-12 they grew with the viewport. Art is contained, never cropped,
+  // because these are logos rather than screenshots.
   .project-thumb {
-    display: block;
+    align-items: center;
+    background-color: #212a36;
+    display: flex;
+    height: 190px;
+    justify-content: center;
     margin: 0;
     overflow: hidden;
     position: relative;
     img {
       display: block;
-      width: 100%;
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
       @include transition(all 0.45s ease 0s);
+    }
+    @media only screen and (max-width: 767px) {
+      height: 160px;
     }
   }
   &:hover .project-thumb img {

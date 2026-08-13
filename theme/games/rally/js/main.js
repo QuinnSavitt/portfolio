@@ -606,10 +606,12 @@ function updateHud(dt) {
     if (S.splitPopT <= 0) els.splitPop.textContent = "";
   }
 
-  // damage bar
+  // damage bar - needs the else, or a restart leaves the old fill on screen
   if (car.damage > 12) {
     els.damageBar.style.display = "block";
     els.damageFill.style.width = Math.min(100, car.damage / 2.2) + "%";
+  } else {
+    els.damageBar.style.display = "none";
   }
 
   // centre warnings

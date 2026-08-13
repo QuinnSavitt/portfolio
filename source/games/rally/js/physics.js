@@ -14,6 +14,14 @@ import { hash32 } from "./daily.js";
 import { G } from "./track.js";
 
 export const DT = 1 / 120;
+
+/* Downward acceleration demand, in g, at which the car leaves the road. A point
+ * mass lifts at exactly 1 g; real suspension droops to chase the surface, so
+ * the car hangs on past that. Tuned by sweep: demand scales with v², and at 1 g
+ * the car goes light over every rolling crest at 150 km/h - constant grip
+ * dropouts, and the bot could no longer bring a third of the candidate stages
+ * home. At 2 g the jumps and sharp crests still launch it cleanly. */
+const LIFTOFF = 2.0;
 export const TICK_RATE = 120;
 
 export const CAR = {
@@ -221,17 +229,24 @@ export function step(car, stage, input) {
 
   // ---- airborne?
   if (!car.airborne) {
-    // ground falling away faster than gravity can pull us down?
-    const groundDropRate = fwdSlope * car.vx; // dy/dt the ground demands
-    const impliedVy = (groundY - car.y) / DT;
-    if (impliedVy < groundDropRate - 3.2 && car.vx > 12) {
+    /* The road can push up but it cannot pull down, so the car leaves it as
+     * soon as following the surface would take more than 1 g of downward
+     * acceleration. targetVy is the vertical velocity the ground ahead asks
+     * for; against the velocity we already carry that is the acceleration.
+     *
+     * The old test compared the slope ahead with the slope just travelled and
+     * fired when the road bent UPWARD - inverted, so it never triggered on a
+     * crest and instead went off in compressions, launching the car downward
+     * at a speed it never had. Jumps could not get the car airborne at all. */
+    const targetVy = fwdSlope * car.vx;
+    const needed = (targetVy - car.vyUp) / DT;
+    if (needed < -G * LIFTOFF && car.vx > 8) {
       car.airborne = true;
-      car.vyUp = Math.max(groundDropRate, fwdSlope * car.vx);
       car.airTime = 0;
-      ev.tookOff = true;
+      ev.tookOff = true;   // vyUp is left as-is: it is the speed we really had
     } else {
       car.y = groundY;
-      car.vyUp = groundDropRate;
+      car.vyUp = targetVy;
     }
   }
 
@@ -253,7 +268,15 @@ export function step(car, stage, input) {
       // ---- landing
       car.y = groundY;
       car.airborne = false;
-      const impact = Math.max(0, -(car.vyUp - fwdSlope * car.vx));
+      /* Closing speed against the ground, bounded by what the flight could
+       * actually have built up. fwdSlope is a finite difference over a
+       * piecewise-linear elevation profile, so it steps between samples; a
+       * kink seeds vyUp with that step and the car "lands" at 14 m/s after
+       * 50 ms of air, collecting phantom damage and a big speed scrub on a
+       * road it never left. Free fall plus a little slack for landing on a
+       * rising slope is the physical ceiling. */
+      const closing = Math.max(0, -(car.vyUp - fwdSlope * car.vx));
+      const impact = Math.min(closing, G * car.airTime + 1.5);
       // orientation mismatch scrubs speed
       const velYaw = Math.atan2(wvz, wvx);
       let mis = Math.abs(((velYaw - car.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
