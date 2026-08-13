@@ -733,6 +733,221 @@ label {
   pointer-events: none;
 }
 
+/*------------------------------------------------
+    Projects Page
+-------------------------------------------------*/
+.page-works .page-title {
+  margin-bottom: 30px;
+}
+
+.projects-filter {
+  list-style: none;
+  margin: 0 0 40px;
+  padding: 0;
+}
+.projects-filter li {
+  display: inline-block;
+  margin: 0 12px 6px;
+}
+.projects-filter a {
+  border-bottom: 2px solid transparent;
+  display: inline-block;
+  font-family: "Open Sans", sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding-bottom: 2px;
+  text-transform: uppercase;
+}
+.projects-filter .active {
+  border-bottom-color: #fa6862;
+  color: #fa6862;
+}
+
+.project-item {
+  background-color: #1e2530;
+  font-family: "Open Sans", sans-serif;
+  margin-bottom: 30px;
+  overflow: hidden;
+  position: relative;
+  text-align: left;
+  transition: all 0.3s ease 0s;
+}
+.project-item .project-thumb {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  position: relative;
+}
+.project-item .project-thumb img {
+  display: block;
+  width: 100%;
+  transition: all 0.45s ease 0s;
+}
+.project-item:hover .project-thumb img {
+  transform: scale(1.05);
+}
+.project-item .project-body {
+  padding: 20px 22px 24px;
+}
+.project-item h4 {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+.project-item h4 a {
+  color: inherit;
+}
+.project-item h4 a:hover, .project-item h4 a:focus {
+  color: #fa6862;
+}
+.project-item .project-cat {
+  color: #fa6862;
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.project-item .project-desc {
+  color: #aaaaaa;
+  font-size: 13px;
+  line-height: 22px;
+  margin-bottom: 14px;
+}
+.project-item .project-tags {
+  margin-bottom: 4px;
+}
+.project-item .project-links {
+  margin-top: 12px;
+}
+.project-item .project-links a {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 30px;
+  margin: 0 6px 6px 0;
+  padding: 0 16px;
+  text-transform: uppercase;
+}
+.project-item .project-links a:hover, .project-item .project-links a:focus {
+  background-color: #fa6862;
+  border-color: #fa6862;
+  color: #fff;
+}
+
+.tag-chip {
+  background-color: #293342;
+  border-radius: 2px;
+  color: #cfd6e4;
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 1px;
+  line-height: 20px;
+  margin: 0 4px 6px 0;
+  padding: 0 9px;
+  text-transform: uppercase;
+  vertical-align: top;
+}
+
+/*------------------------------------------------
+    Resume Page
+-------------------------------------------------*/
+.page-resume .page-title {
+  margin-bottom: 45px;
+}
+.page-resume .page-title p a {
+  border-bottom: 1px dotted rgba(30, 37, 48, 0.4);
+}
+.page-resume .page-title p a:hover {
+  border-bottom-color: #fa6862;
+  color: #fa6862;
+}
+.page-resume .history-item {
+  padding-right: 28px;
+}
+.page-resume .history-text ul {
+  color: #ababab;
+  font-size: 13px;
+  line-height: 22px;
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+.page-resume .history-text ul li {
+  margin-bottom: 6px;
+}
+
+.resume-skills {
+  background-color: #1e2530;
+  font-family: "Open Sans", sans-serif;
+  margin-top: 30px;
+  padding: 24px 34px 20px;
+}
+.resume-skills .section-title {
+  margin-bottom: 18px;
+}
+.resume-skills .skills-group {
+  margin-bottom: 10px;
+}
+.resume-skills .skills-group h5 {
+  color: #fff;
+  display: inline-block;
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin: 0 16px 6px 0;
+  min-width: 120px;
+  text-transform: uppercase;
+  vertical-align: top;
+}
+.resume-skills .skills-group .skills-chips {
+  display: inline-block;
+  max-width: calc(100% - 150px);
+  vertical-align: top;
+}
+@media only screen and (max-width: 767px) {
+  .resume-skills .skills-group .skills-chips {
+    display: block;
+    max-width: none;
+  }
+}
+
+.resume-more {
+  margin-top: 30px;
+  text-align: center;
+}
+.resume-more span {
+  color: #8b97ab;
+  display: inline-block;
+  font-family: "Open Sans", sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  margin-right: 14px;
+  text-transform: uppercase;
+}
+.resume-more a {
+  border: 1px solid rgba(30, 37, 48, 0.25);
+  color: #1e2530;
+  display: inline-block;
+  font-family: "Open Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 32px;
+  margin: 0 5px 8px;
+  padding: 0 20px;
+  text-transform: uppercase;
+}
+.resume-more a:hover, .resume-more a:focus {
+  background-color: #fa6862;
+  border-color: #fa6862;
+  color: #fff;
+}
+
 .progress {
   background-color: #1e2530;
   border-radius: 2px;

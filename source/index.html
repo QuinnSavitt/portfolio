@@ -103,9 +103,9 @@
               <div class="hexagon-item">
                 <div class="hex-item"><div></div><div></div><div></div></div>
                 <div class="hex-item"><div></div><div></div><div></div></div>
-                <a href="javascript:void(0);" class="hex-content" onclick="goToRandomPage(false)">
+                <a href="fun.html" class="hex-content">
                   <span class="hex-content-inner">
-                    <span class="icon"><i class="tf-envelope2"></i></span>
+                    <span class="icon"><i class="tf-happy"></i></span>
                     <span class="title">Fun Stuff</span>
                   </span>
                   <svg viewBox="0 0 173.20508075688772 200" height="200" width="174">
@@ -120,26 +120,5 @@
     </div> <!-- /.pt-tablecell -->
   </div> <!-- /.pt-table -->
 </main> <!-- /.site-wrapper -->
-
-<!-- 🎲 Random page logic -->
-<script>
-  const funPages = [
-    'visualizer.html',
-    'algs.html',
-    'spirograph.html'
-    // Add more here as needed
-  ];
-
-  function goToRandomPage(excludeCurrent = true) {
-    const current = window.location.pathname.split('/').pop();
-    const choices = excludeCurrent
-      ? funPages.filter(page => page !== current)
-      : funPages;
-
-    if (choices.length === 0) return;
-    const random = choices[Math.floor(Math.random() * choices.length)];
-    window.location.href = random;
-  }
-</script>
 
 @@include('footer.htm')

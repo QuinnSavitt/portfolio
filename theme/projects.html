@@ -20,7 +20,7 @@ FACEBOOK: https://www.facebook.com/themefisher
 -->
 
 <!DOCTYPE html>
-<html lang="zxx">
+<html lang="en">
 <head>
 
   <!-- ** Basic Page Needs ** -->
@@ -31,11 +31,7 @@ FACEBOOK: https://www.facebook.com/themefisher
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="description" content="Personal Portfolio">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <meta name="author" content="Themefisher">
-  <meta name="generator" content="Themefisher Html5 Portfolio Template v1.0">
-  
-  <!-- theme meta -->
-  <meta name="theme-name" content="phantom" />
+  <meta name="author" content="Quinn Savitt">
 
   <!-- Essential Stylesheets -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i|Open+Sans:400,600,700,800">
@@ -47,10 +43,7 @@ FACEBOOK: https://www.facebook.com/themefisher
 
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
-  
-  <!-- Theme Stylesheet -->
-  <link rel="stylesheet" href="#" id="color-changer">
-  
+
   <!--Favicon-->
   <link rel="icon" href="images/favicon.png" type="image/x-icon">
 
@@ -63,23 +56,6 @@ FACEBOOK: https://www.facebook.com/themefisher
     <div class="loading-mask"></div>
     <div class="loading-mask"></div>
     <div class="loading-mask"></div>
-  </div>
-
-  <div class="preview-wrapper">
-    <div class="switcher-head">
-      <span>Style Switcher</span>
-      <div class="switcher-trigger tf-tools"></div>
-    </div>
-
-    <div class="switcher-body">
-      <h4>Choose Color:</h4>
-      <ul class="color-options list-none">
-        <li class="c0" data-color="red" title="Default">Default</li>
-        <li class="c1" data-color="blue" title="Red">Red</li>
-        <li class="c2" data-color="green" title="Green">Green</li>
-        <li class="c3" data-color="yellow" title="Blue">Blue</li>
-      </ul>
-    </div>
   </div>
 
 
@@ -98,68 +74,204 @@ FACEBOOK: https://www.facebook.com/themefisher
             </div>
           </div>
         </div> <!-- /.row -->
-        <div class="row isotope-gutter">
-          <div class="col-xs-12 col-sm-6 col-md-4 Photoshop Illustrator">
-            <a href="https://github.com/spcoughlin/Giveo" target="_blank">
-            <figure class="works-item">
-              <img src="images/works/giveo.png" alt="">
-              <div class="overlay"></div>
-              <figcaption class="works-inner">
-                <h4>Giveo</h4>
-                <p>Mobile App, Algorithm Design</p>
-              </figcaption>
-            </figure>
-            </a>
-          </div>
-          <div class="col-xs-12 col-sm-6 col-md-4 Illustrator">
-            <a href="https://classicube.net" target="_blank">
-            <figure class="works-item">
-              <img src="images/works/classicube.png" alt="">
-              <div class="overlay"></div>
-              <figcaption class="works-inner">
-                <h4>Puissant Royale - Classicube</h4>
-                <p>Game, Large Codebase</p>
-              </figcaption>
-            </figure>
-            </a>
-          </div>
-          <div class="col-xs-12 col-sm-6 col-md-4 Indesign Photoshop">
-            <a href="https://github.com/QuinnSavitt/tspmo" target="_blank">
-            <figure class="works-item">
-              <img src="images/works/tspmo.png" alt="">
-              <div class="overlay"></div>
-              <figcaption class="works-inner">
-                <h4>TSPMO</h4>
-                <p>Interpreter, IDE tools</p>
-              </figcaption>
-            </figure>
-            </a>
-          </div>
-          <div class="col-xs-12 col-sm-6 col-md-4 Artworks Illustrator">
-            <a href="https://puffinlesstravel.com/" target="_blank">
-            <figure class="works-item">
-              <img src="images/works/puffinless.png" alt="">
-              <div class="overlay"></div>
-              <figcaption class="works-inner">
-                <h4>Puffinless Travel</h4>
-                <p>Web Design</p>
-              </figcaption>
-            </figure>
-            </a>
-          </div>
-          <div class="col-xs-12 col-sm-6 col-md-4 Photoshop">
-            <figure class="works-item">
-              <img src="images/works/luna.png" alt="">
-              <div class="overlay"></div>
-              <figcaption class="works-inner">
-                <h4>Luna</h4>
-                <p>Smart Mirror</p>
-              </figcaption>
-            </figure>
+
+        <div class="row">
+          <div class="col-xs-12 text-center">
+            <ul class="filter projects-filter">
+              <li><a href="#" class="link active" data-filter="*">All</a></li>
+              <li><a href="#" class="link" data-filter=".lang">Languages &amp; Tools</a></li>
+              <li><a href="#" class="link" data-filter=".game">Games</a></li>
+              <li><a href="#" class="link" data-filter=".apps">Apps &amp; Web</a></li>
+              <li><a href="#" class="link" data-filter=".research">Research</a></li>
+            </ul>
           </div>
         </div> <!-- /.row -->
+
+        <div class="row isotope-gutter">
+
+          <!-- TSPMO -->
+          <div class="col-xs-12 col-sm-6 col-md-4 lang">
+            <div class="project-item">
+              <a href="https://github.com/QuinnSavitt/tspmo" target="_blank" class="project-thumb">
+                <img src="images/works/tspmo.png" alt="TSPMO">
+              </a>
+              <div class="project-body">
+                <h4><a href="https://github.com/QuinnSavitt/tspmo" target="_blank">TSPMO</a></h4>
+                <span class="project-cat">Interpreter, IDE tools</span>
+                <p class="project-desc">Designed my own Turing complete programming language. Interpreter developed using Python, and bootstrapped in TSPMO. Supports module imports and recursion.</p>
+                <div class="project-tags">
+                  <span class="tag-chip">Python</span>
+                  <span class="tag-chip">TSPMO</span>
+                  <span class="tag-chip">Compilers</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/QuinnSavitt/tspmo" target="_blank">GitHub</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QGraphic -->
+          <div class="col-xs-12 col-sm-6 col-md-4 lang game">
+            <div class="project-item">
+              <span class="project-thumb">
+                <img src="images/works/qgraphic.svg" alt="QGraphic">
+              </span>
+              <div class="project-body">
+                <h4>QGraphic</h4>
+                <span class="project-cat">Language + Graphics Engine</span>
+                <p class="project-desc">A bespoke programming language and graphics engine for an LED Matrix display: API connections, WebSocket connectivity, a full text editor with linting and auto-formatting, and image/animation editing tools. Written in Python with TSPMO support. Bootstrapped in QGraphic.</p>
+                <div class="project-tags">
+                  <span class="tag-chip">Python</span>
+                  <span class="tag-chip">TSPMO</span>
+                  <span class="tag-chip">WebSockets</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Synta -->
+          <div class="col-xs-12 col-sm-6 col-md-4 lang apps">
+            <div class="project-item">
+              <a href="synta.html" class="project-thumb">
+                <img src="images/works/synta.svg" alt="Synta">
+              </a>
+              <div class="project-body">
+                <h4><a href="synta.html">Synta</a></h4>
+                <span class="project-cat">Web App, Language Design</span>
+                <p class="project-desc">A browser studio for syntax trees: bracketed notation and a flat .synta format render to canvas, styled by SYT &mdash; a small indentation-sensitive scripting language interpreted live in the browser. Runs right here on this site.</p>
+                <div class="project-tags">
+                  <span class="tag-chip">JavaScript</span>
+                  <span class="tag-chip">Canvas</span>
+                  <span class="tag-chip">Interpreters</span>
+                </div>
+                <div class="project-links">
+                  <a href="synta.html">Launch app</a>
+                  <a href="docs.html">Language docs</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Puissant Royale -->
+          <div class="col-xs-12 col-sm-6 col-md-4 game">
+            <div class="project-item">
+              <a href="https://classicube.net" target="_blank" class="project-thumb">
+                <img src="images/works/classicube.png" alt="Puissant Royale - Classicube">
+              </a>
+              <div class="project-body">
+                <h4><a href="https://classicube.net" target="_blank">Puissant Royale &ndash; Classicube</a></h4>
+                <span class="project-cat">Game, Large Codebase</span>
+                <p class="project-desc">Open source. Implemented and refined world generation algorithms by modifying wave function collapse using C#. Designed and programmed a low-level bootstrapped scripting language for NPCs using C# and Lua. Managed server health using MCGalaxy and databases using MySQL.</p>
+                <div class="project-tags">
+                  <span class="tag-chip">C#</span>
+                  <span class="tag-chip">Lua</span>
+                  <span class="tag-chip">MySQL</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://classicube.net" target="_blank">Classicube</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Games -->
+          <div class="col-xs-12 col-sm-6 col-md-4 game">
+            <div class="project-item">
+              <a href="games.html" class="project-thumb">
+                <img src="images/works/dailygames.svg" alt="Daily Games">
+              </a>
+              <div class="project-body">
+                <h4><a href="games.html">Daily Games</a></h4>
+                <span class="project-cat">Browser Games, Determinism</span>
+                <p class="project-desc">Original daily puzzle games built for this site &mdash; engineer and fly a rocket in Daily Rocket, race a procedurally generated stage in Daily Rally. Fully deterministic: every player in the world gets the same challenge each day.</p>
+                <div class="project-tags">
+                  <span class="tag-chip">JavaScript</span>
+                  <span class="tag-chip">Three.js</span>
+                  <span class="tag-chip">Determinism</span>
+                </div>
+                <div class="project-links">
+                  <a href="games.html">Play today's</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Giveo -->
+          <div class="col-xs-12 col-sm-6 col-md-4 apps">
+            <div class="project-item">
+              <a href="https://github.com/spcoughlin/Giveo" target="_blank" class="project-thumb">
+                <img src="images/works/giveo.png" alt="Giveo">
+              </a>
+              <div class="project-body">
+                <h4><a href="https://github.com/spcoughlin/Giveo" target="_blank">Giveo</a></h4>
+                <span class="project-cat">Mobile App, Algorithm Design</span>
+                <p class="project-desc">Hackathon winner. Built the recommendation algorithm for an app connecting users to charities using a bimodal regression model in Python. Developed and maintained an API for frontend calls using FastAPI.</p>
+                <div class="project-tags">
+                  <span class="tag-chip">Python</span>
+                  <span class="tag-chip">FastAPI</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/spcoughlin/Giveo" target="_blank">GitHub</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OEIS Proofs -->
+          <div class="col-xs-12 col-sm-6 col-md-4 research">
+            <div class="project-item">
+              <a href="proofs.html" class="project-thumb">
+                <img src="images/works/oeis.svg" alt="OEIS Proofs">
+              </a>
+              <div class="project-body">
+                <h4><a href="proofs.html">OEIS Proofs</a></h4>
+                <span class="project-cat">Number Theory</span>
+                <p class="project-desc">Proved 3 open problems in number theory on OEIS, the Online Encyclopedia of Integer Sequences.</p>
+                <div class="project-tags">
+                  <span class="tag-chip">Mathematics</span>
+                  <span class="tag-chip">OEIS</span>
+                </div>
+                <div class="project-links">
+                  <a href="proofs.html">Read the proofs</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Puffinless Travel -->
+          <div class="col-xs-12 col-sm-6 col-md-4 apps">
+            <div class="project-item">
+              <a href="https://puffinlesstravel.com/" target="_blank" class="project-thumb">
+                <img src="images/works/puffinless.png" alt="Puffinless Travel">
+              </a>
+              <div class="project-body">
+                <h4><a href="https://puffinlesstravel.com/" target="_blank">Puffinless Travel</a></h4>
+                <span class="project-cat">Web Design</span>
+                <p class="project-desc">Design and build of the Puffinless Travel site.</p>
+                <div class="project-links">
+                  <a href="https://puffinlesstravel.com/" target="_blank">Visit site</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Luna -->
+          <div class="col-xs-12 col-sm-6 col-md-4 apps">
+            <div class="project-item">
+              <span class="project-thumb">
+                <img src="images/works/luna.png" alt="Luna">
+              </span>
+              <div class="project-body">
+                <h4>Luna</h4>
+                <span class="project-cat">Smart Mirror</span>
+                <p class="project-desc">A personal smart mirror build.</p>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- /.row -->
       </div> <!-- /.container -->
-      <!-- /.container -->
 
     </div> <!-- /.pt-tablecell -->
   </div> <!-- /.pt-table -->

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <rect width="800" height="800" fill="#f5f0e6"/>
+  <g fill="#1e2530" font-family="Consolas, Menlo, monospace" font-weight="700" font-size="76" text-anchor="middle">
+    <text x="400" y="300">1, 1, 2, 3, 5,</text>
+    <text x="400" y="420">8, 13, 21, 34,</text>
+    <text x="400" y="540">55, 89, 144, &#8230;</text>
+  </g>
+  <rect x="377" y="600" width="46" height="46" fill="#fa6862"/>
+</svg>

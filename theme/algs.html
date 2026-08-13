@@ -12,27 +12,67 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Sorting Soundscape</title>
-  <!-- your Bootstrap theme -->
-  <link rel="stylesheet" href="plugins/bootstrap/bootstrap.min.css">
+  <link rel="icon" href="images/favicon.png" type="image/x-icon">
   <style>
-    body { background: #f8f9fa; }
-    #viz { background: white; border: 1px solid #ddd; border-radius: .5rem; }
-    .algo-header { font-family: monospace; }
+    body {
+      margin: 0;
+      background: #0d1117;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px 16px 24px;
+    }
+    h1 { margin: 0 0 18px; }
+    .algo-header { font-family: ui-monospace, monospace; min-height: 22px; margin: 0 0 14px; }
+    #algo-name { color: #fa6862; }
+    #viz {
+      background: #111;
+      border: 1px solid #333f52;
+      border-radius: 8px;
+      max-width: 100%;
+    }
+    .buttons { margin-top: 14px; }
+    button {
+      margin: 4px 5px;
+      padding: 8px 16px;
+      background: #444;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #fa6862; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .qs-home {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 50;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #cfd6e4;
+      background: rgba(30, 37, 48, 0.92);
+      border: 1px solid #333f52;
+      border-radius: 4px;
+      padding: 8px 14px;
+      text-decoration: none;
+    }
+    .qs-home:hover { color: #fff; border-color: #fa6862; }
   </style>
 </head>
-<body class="py-5">
-  <div class="container">
-    <h1 class="mb-4 text-center">Sorting Soundscape</h1>
-    <p class="text-center algo-header">
-      <span id="algo-name" class="text-primary"></span>
-    </p>
-    <div class="d-flex justify-content-center mb-3">
-      <canvas id="viz" width="800" height="300"></canvas>
-    </div>
-    <div class="text-center">
-      <button id="reload" class="btn btn-outline-secondary">🔄 Load Another</button>
-      <button id="randomBtn" onclick="goToRandomPage(true)">Take Me Somewhere Else Fun</button>
-    </div>
+<body>
+  <a class="qs-home" href="./">&larr; quinnsavitt.com</a>
+
+  <h1>Sorting Soundscape</h1>
+  <p class="algo-header">
+    <span id="algo-name"></span>
+  </p>
+  <canvas id="viz" width="800" height="300"></canvas>
+  <div class="buttons">
+    <button id="reload">🔄 Load Another</button>
+    <button id="randomBtn" onclick="goToRandomPage(true)">Take Me Somewhere Else Fun</button>
   </div>
 
   <script>
@@ -428,7 +468,7 @@
       }
       for(let i=0;i<n;i++){
         arr[i]=output[i];
-        drawArray(arr,{[idx]:'#f00'});
+        drawArray(arr,{[i]:'#f00'});
         playTone(freqFromHeight(arr[i]));
         await wait(5);
       }
@@ -518,24 +558,6 @@
   window.onload = runDemo;
   </script>
 
-  <script>
-  const funPages = [
-    'visualizer.html',
-    'algs.html',
-    'spirograph.html'
-    // Add more pages here as needed
-  ];
-
-  function goToRandomPage(excludeCurrent = true) {
-    const current = window.location.pathname.split('/').pop();
-    const choices = excludeCurrent
-      ? funPages.filter(page => page !== current)
-      : funPages;
-
-    if (choices.length === 0) return;
-    const random = choices[Math.floor(Math.random() * choices.length)];
-    window.location.href = random;
-  }
-</script>
+  <script src="js/fun.js"></script>
 </body>
 </html>

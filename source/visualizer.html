@@ -3,6 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <title>Music Visualizer</title>
+  <link rel="icon" href="images/favicon.png" type="image/x-icon">
+  <style>
+    .qs-home {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 50;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #cfd6e4;
+      background: rgba(30, 37, 48, 0.92);
+      border: 1px solid #333f52;
+      border-radius: 4px;
+      padding: 8px 14px;
+      text-decoration: none;
+    }
+    .qs-home:hover { color: #fff; border-color: #fa6862; }
+  </style>
   <style>
     body {
       margin: 0;
@@ -33,8 +53,12 @@
       cursor: pointer;
     }
 
+    button:hover {
+      background: #666;
+    }
+
     button.active {
-      background: #007bff;
+      background: #fa6862;
     }
 
     label {
@@ -62,6 +86,8 @@
   </style>
 </head>
 <body>
+  <a class="qs-home" href="./">&larr; quinnsavitt.com</a>
+
   <h1>Music Visualizer</h1>
 
   <div id="controls">
@@ -247,24 +273,6 @@
     });
   </script>
 
-  <script>
-    const funPages = [
-      'visualizer.html',
-      'algs.html',
-      'spirograph.html'
-      // Add more pages here as needed
-    ];
-
-    function goToRandomPage(excludeCurrent = true) {
-      const current = window.location.pathname.split('/').pop();
-      const choices = excludeCurrent
-        ? funPages.filter(page => page !== current)
-        : funPages;
-
-      if (choices.length === 0) return;
-      const random = choices[Math.floor(Math.random() * choices.length)];
-      window.location.href = random;
-    }
-  </script>
+  <script src="js/fun.js"></script>
 </body>
 </html>

@@ -1,0 +1,135 @@
+/*------------------------------------------------
+    Projects Page
+-------------------------------------------------*/
+.page-works {
+  .page-title {
+    margin-bottom: 30px;
+  }
+}
+
+// Category filter row (isotope, wired up in script.js)
+.projects-filter {
+  list-style: none;
+  margin: 0 0 40px;
+  padding: 0;
+  li {
+    display: inline-block;
+    margin: 0 12px 6px;
+  }
+  a {
+    border-bottom: 2px solid transparent;
+    display: inline-block;
+    font-family: $open-sans;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding-bottom: 2px;
+    text-transform: uppercase;
+  }
+  .active {
+    border-bottom-color: $primary-color;
+    color: $primary-color;
+  }
+}
+
+// Project card: square tile on top, always-visible details underneath
+.project-item {
+  background-color: $light-dark;
+  font-family: $open-sans;
+  margin-bottom: 30px;
+  overflow: hidden;
+  position: relative;
+  text-align: left;
+  @include transition(all 0.3s ease 0s);
+
+  .project-thumb {
+    display: block;
+    margin: 0;
+    overflow: hidden;
+    position: relative;
+    img {
+      display: block;
+      width: 100%;
+      @include transition(all 0.45s ease 0s);
+    }
+  }
+  &:hover .project-thumb img {
+    @include transform(scale(1.05));
+  }
+
+  .project-body {
+    padding: 20px 22px 24px;
+  }
+
+  h4 {
+    color: $light;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    a {
+      color: inherit;
+      &:hover,
+      &:focus {
+        color: $primary-color;
+      }
+    }
+  }
+
+  .project-cat {
+    color: $primary-color;
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  .project-desc {
+    color: #aaaaaa;
+    font-size: 13px;
+    line-height: 22px;
+    margin-bottom: 14px;
+  }
+
+  .project-tags {
+    margin-bottom: 4px;
+  }
+
+  .project-links {
+    margin-top: 12px;
+    a {
+      border: 1px solid rgba($light, 0.25);
+      color: $light;
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      line-height: 30px;
+      margin: 0 6px 6px 0;
+      padding: 0 16px;
+      text-transform: uppercase;
+      &:hover,
+      &:focus {
+        background-color: $primary-color;
+        border-color: $primary-color;
+        color: $light;
+      }
+    }
+  }
+}
+
+// Small uppercase chip, shared by project cards and the resume skills block
+.tag-chip {
+  background-color: #293342;
+  border-radius: 2px;
+  color: #cfd6e4;
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 1px;
+  line-height: 20px;
+  margin: 0 4px 6px 0;
+  padding: 0 9px;
+  text-transform: uppercase;
+  vertical-align: top;
+}

@@ -1,0 +1,72 @@
+@@include('header.htm')
+
+<main class="site-wrapper">
+  <div class="pt-table">
+    <div class="pt-tablecell page-games relative">
+      <!-- .close -->
+      <a href="./" class="page-close"><i class="tf-ion-close"></i></a>
+      <!-- /.close -->
+
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12 col-md-offset-1 col-md-10 col-lg-offset-2 col-lg-8">
+            <div class="page-title text-center">
+              <h2>Fun <span class="primary">stuff</span> <span class="title-bg">Playground</span></h2>
+              <p>Little interactive toys that live on this site. Everything runs right in your browser.</p>
+            </div>
+          </div>
+        </div> <!-- /.row -->
+
+        <div class="row games-grid">
+          <div class="col-xs-12 col-sm-6 col-md-3">
+            <div class="game-item">
+              <span class="game-hex"><i class="tf-ion-music-note"></i></span>
+              <h4>Music Visualizer</h4>
+              <p class="game-tagline">Drop in a song and watch the bars, waveform and starbursts react to it.</p>
+              <div class="game-meta"></div>
+              <a href="visualizer.html" class="game-play">Open</a>
+            </div>
+          </div>
+          <div class="col-xs-12 col-sm-6 col-md-3">
+            <div class="game-item">
+              <span class="game-hex"><i class="tf-ion-stats-bars"></i></span>
+              <h4>Sorting Soundscape</h4>
+              <p class="game-tagline">Classic sorting algorithms drawn and sonified &mdash; every comparison plays a note.</p>
+              <div class="game-meta"></div>
+              <a href="algs.html" class="game-play">Open</a>
+            </div>
+          </div>
+          <div class="col-xs-12 col-sm-6 col-md-3">
+            <div class="game-item">
+              <span class="game-hex"><i class="tf-aperture"></i></span>
+              <h4>Spirograph</h4>
+              <p class="game-tagline">An endless hypotrochoid pen. Tune the radii, pen offset and speed.</p>
+              <div class="game-meta"></div>
+              <a href="spirograph.html" class="game-play">Open</a>
+            </div>
+          </div>
+          <div class="col-xs-12 col-sm-6 col-md-3">
+            <div class="game-item">
+              <span class="game-hex"><i class="tf-ion-shuffle"></i></span>
+              <h4>Surprise Me</h4>
+              <p class="game-tagline">Can't pick? Let the site choose a toy for you.</p>
+              <div class="game-meta"></div>
+              <a href="#" class="game-play" onclick="goToRandomPage(false); return false;">Roll the dice</a>
+            </div>
+          </div>
+        </div> <!-- /.row -->
+
+        <div class="row">
+          <div class="col-xs-12 text-center">
+            <p class="games-empty">Looking for the daily games? They moved to their own <a href="games.html" class="link primary">Games page</a>.</p>
+          </div>
+        </div> <!-- /.row -->
+      </div> <!-- /.container -->
+
+    </div> <!-- /.pt-tablecell -->
+  </div> <!-- /.pt-table -->
+</main> <!-- /.site-wrapper -->
+
+<script src="js/fun.js"></script>
+
+@@include('footer.htm')

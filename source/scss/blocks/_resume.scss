@@ -1,0 +1,101 @@
+/*------------------------------------------------
+    Resume Page
+-------------------------------------------------*/
+.page-resume {
+  .page-title {
+    margin-bottom: 45px;
+    p a {
+      border-bottom: 1px dotted rgba($light-dark, 0.4);
+      &:hover {
+        border-bottom-color: $primary-color;
+        color: $primary-color;
+      }
+    }
+  }
+
+  .history-item {
+    padding-right: 28px;
+  }
+
+  .history-text {
+    ul {
+      color: #ababab;
+      font-size: 13px;
+      line-height: 22px;
+      margin: 8px 0 0;
+      padding-left: 18px;
+      li {
+        margin-bottom: 6px;
+      }
+    }
+  }
+}
+
+// Skills band under the two history columns
+.resume-skills {
+  background-color: $light-dark;
+  font-family: $open-sans;
+  margin-top: 30px;
+  padding: 24px 34px 20px;
+
+  .section-title {
+    margin-bottom: 18px;
+  }
+
+  .skills-group {
+    margin-bottom: 10px;
+    h5 {
+      color: $light;
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 1px;
+      margin: 0 16px 6px 0;
+      min-width: 120px;
+      text-transform: uppercase;
+      vertical-align: top;
+    }
+    .skills-chips {
+      display: inline-block;
+      max-width: calc(100% - 150px);
+      vertical-align: top;
+      @media only screen and (max-width: 767px) {
+        display: block;
+        max-width: none;
+      }
+    }
+  }
+}
+
+// "More of me" links under the resume (projects / proofs / publications)
+.resume-more {
+  margin-top: 30px;
+  text-align: center;
+  span {
+    color: #8b97ab;
+    display: inline-block;
+    font-family: $open-sans;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    margin-right: 14px;
+    text-transform: uppercase;
+  }
+  a {
+    border: 1px solid rgba($light-dark, 0.25);
+    color: $title-color;
+    display: inline-block;
+    font-family: $open-sans;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    line-height: 32px;
+    margin: 0 5px 8px;
+    padding: 0 20px;
+    text-transform: uppercase;
+    &:hover,
+    &:focus {
+      background-color: $primary-color;
+      border-color: $primary-color;
+      color: $light;
+    }
+  }
+}
