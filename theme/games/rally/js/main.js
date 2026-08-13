@@ -697,4 +697,5 @@ setInterval(() => {
 }, 1000);
 
 /* off we go */
+console.log("Daily Rally modules v" + (window.__DR_VERSION || "?") + " — main.js loaded");
 boot();

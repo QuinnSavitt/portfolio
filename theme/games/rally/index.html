@@ -177,6 +177,27 @@ a.back-link:hover { color: var(--white); }
 
 <canvas id="gl"></canvas>
 
+<!-- error reporter: a silent exception must never look like a blank screen -->
+<div id="errBanner" style="display:none; position:fixed; left:0; right:0; top:0; z-index:99;
+  background:#5c1f1f; color:#ffd6d2; font:12px/1.5 monospace; padding:8px 12px; white-space:pre-wrap;"></div>
+<script>
+(function () {
+  window.__DR_VERSION = "1.2.0";
+  function show(msg) {
+    var el = document.getElementById("errBanner");
+    if (!el) return;
+    el.style.display = "block";
+    el.textContent = "Daily Rally hit an error (v" + window.__DR_VERSION + ") — try a hard refresh (Ctrl+Shift+R).\n" + msg;
+  }
+  window.addEventListener("error", function (e) {
+    show((e.message || e.type) + (e.filename ? "\n" + e.filename.split("/").slice(-2).join("/") + ":" + e.lineno : ""));
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    show("unhandled rejection: " + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  });
+})();
+</script>
+
 <!-- HUD -->
 <div class="hud" id="stageTag"></div>
 <div class="hud" id="timerWrap">
