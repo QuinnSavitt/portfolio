@@ -136,7 +136,7 @@
       node.Text = node.type === 'term' ? (node.word || node.label || '?') : (node.label || '?');
       node.Category = node.pos || node.label || null;
       node.TextSize = Number(node.TextSize) || 18;
-      node.Color = node.Color || (node.type === 'term' ? '#7a5a34' : '#1f5132');
+      node.Color = node.Color || (node.type === 'term' ? '#7d5636' : '#27553a');
       node.Font = node.Font || 'Inter, "Segoe UI", Arial, sans-serif';
       node.Parent = parent || null;
       node.Children = (node.children || []);
@@ -787,9 +787,9 @@
     const x = n._x || 100;
     const y = n._y || 100;
     const isTerm = n.type === 'term' || (!(n.children && n.children.length));
-    const termColor = colorFromValue(n.Color, '#7a5a34');
-    const nodeColor = colorFromValue(n.Color, '#1f5132');
-    const subColor = colorFromValue(n.SubColor || n.Color, '#7a5a34');
+    const termColor = colorFromValue(n.Color, '#7d5636');
+    const nodeColor = colorFromValue(n.Color, '#27553a');
+    const subColor = colorFromValue(n.SubColor || n.Color, '#7d5636');
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     // Bold, larger labels for readability

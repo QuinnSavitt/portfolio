@@ -180,7 +180,7 @@
     @include flex-grow(1);
   }
   .bar {
-    background-color: $primary-color;
+    background-color: $tan; // the track behind it is forest
     border-radius: 10px;
     height: 8px;
     width: 0;
@@ -247,7 +247,7 @@
   }
 
   h4 {
-    color: $primary-color;
+    color: $tan; // sits on the dark hover overlay
     font-weight: 700;
     text-transform: uppercase;
   }
@@ -273,6 +273,10 @@
 .history-block {
   background-color: $light-dark;
   position: relative;
+  // the accent rule under the heading is on forest here, not parchment
+  .section-title h3::after {
+    background-color: $tan;
+  }
   .section-title {
     background-color: $light-dark;
     border-bottom: 1px solid $forest-600;
@@ -331,7 +335,7 @@
     text-transform: uppercase;
   }
   span {
-    color: $wood-300;
+    color: $tan-dim;
     font-size: 12px;
   }
 }

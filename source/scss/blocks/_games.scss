@@ -94,7 +94,8 @@
   }
 
   h4 {
-    color: $primary-color;
+    // card sits on forest, so the accent steps up a weight to stay readable
+    color: $tan;
     font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.96px;
@@ -105,7 +106,7 @@
   // grows to fill the tallest card in the row, keeping the badges and
   // the button on a common baseline across the row
   .game-tagline {
-    color: $wood-300;
+    color: $tan-dim;
     font-size: 13px;
     line-height: 22px;
     margin-bottom: 15px;
@@ -196,13 +197,13 @@
   &.soon {
     background-color: transparent;
     border: 1px solid $forest-500;
-    color: $moss;
+    color: $sage;
     line-height: 18px;
   }
   &.played {
     background-color: transparent;
-    border: 1px solid $moss;
-    color: $gold-light;
+    border: 1px solid $sage;
+    color: $tan;
     line-height: 18px;
   }
 }
@@ -227,7 +228,7 @@
   }
   &.disabled {
     border-style: dashed;
-    color: $moss;
+    color: $sage;
     cursor: default;
     pointer-events: none;
   }

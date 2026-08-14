@@ -10,7 +10,7 @@
 
 	$(".history-scroller").niceScroll({
 		cursorwidth: "8px",
-		background: "#16241a",
+		background: "#1b2e21",
 		cursorborder: "0",
 		cursorborderradius: "0",
 		autohidemode: false,

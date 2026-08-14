@@ -84,13 +84,14 @@
       color: inherit;
       &:hover,
       &:focus {
-        color: $primary-color;
+        color: $tan;
       }
     }
   }
 
   .project-cat {
-    color: $primary-color;
+    // on the forest card, so the lighter weight of the accent
+    color: $tan;
     display: block;
     font-size: 11px;
     letter-spacing: 1.2px;
@@ -99,7 +100,7 @@
   }
 
   .project-desc {
-    color: $wood-300;
+    color: $tan-dim;
     font-size: 13px;
     line-height: 22px;
     margin-bottom: 14px;

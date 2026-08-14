@@ -11,7 +11,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Music Visualizer</title>
-  <link rel="icon" href="images/favicon.png?v=2" type="image/x-icon">
+  <link rel="icon" href="images/favicon.png?v=3" type="image/x-icon">
   <style>
     .qs-home {
       position: fixed;
@@ -22,21 +22,21 @@
       font-weight: 700;
       letter-spacing: 1.2px;
       text-transform: uppercase;
-      color: #eae1cd;
-      background: rgba(23, 40, 27, 0.92);
-      border: 1px solid #2d4834;
+      color: #e8dfcb;
+      background: rgba(27, 46, 33, 0.92);
+      border: 1px solid #325a3c;
       border-radius: 4px;
       padding: 8px 14px;
       text-decoration: none;
     }
-    .qs-home:hover { color: #fbf7ec; border-color: #c9a227; }
+    .qs-home:hover { color: #f7f2e7; border-color: #c8a179; }
   </style>
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
       color: white;
-      background: #101c14;
+      background: #132018;
       overflow: hidden;
       text-align: center;
     }
@@ -56,17 +56,17 @@
       padding: 8px 16px;
       border: none;
       border-radius: 5px;
-      background: #203624;
+      background: #24402c;
       color: white;
       cursor: pointer;
     }
 
     button:hover {
-      background: #2d4834;
+      background: #325a3c;
     }
 
     button.active {
-      background: #c9a227;
+      background: #c8a179;
     }
 
     label {
@@ -138,7 +138,7 @@
       hype: {
         bg: (bass) => `rgb(${Math.min(24 + bass, 92)}, ${Math.min(16 + bass * 0.55, 58)}, 12)`,
         bar: (val) => `rgb(${Math.min(120 + val, 236)}, ${Math.min(88 + val * 0.55, 178)}, 46)`,
-        wave: '#e6c65f',
+        wave: '#dcbc94',
         burst: 'rgba(251, 247, 236, 0.8)',
       },
       deep: {
