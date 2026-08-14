@@ -22,6 +22,11 @@ export const DT = 1 / 120;
  * dropouts, and the bot could no longer bring a third of the candidate stages
  * home. At 2 g the jumps and sharp crests still launch it cleanly. */
 const LIFTOFF = 2.0;
+
+/* How hard the car is helped to follow the wheel. 0 is the raw physics model,
+ * which needs sim-grade correction to keep on the road; 1 is firmly arcade.
+ * See the arcade stability block in step(). */
+const STABILITY = 0.8;
 export const TICK_RATE = 120;
 
 export const CAR = {
@@ -338,9 +343,9 @@ export function step(car, stage, input) {
        * could catch, so the handbrake was a trap everywhere except a true
        * hairpin. Softer rear mu plus the gentler falloff keeps the slide
        * progressive and steerable. */
-      brakeR += 6000;
+      brakeR += 8500;
       driveR = 0;
-      rearMuLat = mu * 0.5;
+      rearMuLat = mu * 0.38;
       rearC = C + 0.5;
     }
     // engine braking
@@ -433,9 +438,32 @@ export function step(car, stage, input) {
      * keeps a slide a slide - it does not make the car faster, it makes the
      * moment survivable. */
     const betaNow = Math.abs(Math.atan2(car.vyLat, Math.max(4, Math.abs(car.vx))));
-    const excess = betaNow - 0.45;
+    // pull the handbrake and you have asked for the big angle - let it come
+    const excess = betaNow - (car.handbrake ? 0.95 : 0.45);
     if (excess > 0) {
       car.omega -= car.omega * Math.min(0.8, excess * 2.4) * DT * 2.0;
+    }
+
+    /* ---- arcade stability ------------------------------------------------
+     * This is a game you play on a keyboard with three steering positions and
+     * a human reaction time, not a simulator. A physically honest rally car
+     * needs constant delicate correction, which is unplayable with those
+     * controls - so the car is helped to do what the driver asked.
+     *
+     * Both assists fade out in proportion to how much slide the driver is
+     * deliberately calling for, so the handbrake and a bootful of steering
+     * still hang the tail out and the ceiling stays where it was.
+     */
+    const wantSlide = Math.min(1, Math.abs(car.sigma) * 1.3);
+    const assist = car.handbrake ? 0 : STABILITY * (1 - 0.7 * wantSlide);
+    if (assist > 0 && Math.abs(car.vx) > 3) {
+      // the car goes where it points: bleed off sideways drift
+      car.vyLat -= car.vyLat * Math.min(1, assist * 3.0 * DT);
+      // and turns as much as the wheel asks, up to what grip actually allows
+      const gripOmega = (mu * G * 1.05) / Math.max(6, Math.abs(car.vx));
+      const kinematic = (car.vx / (CAR.a + CAR.b)) * Math.tan(car.steer);
+      const targetOmega = Math.max(-gripOmega, Math.min(gripOmega, kinematic));
+      car.omega += (targetOmega - car.omega) * Math.min(1, assist * 2.4 * DT);
     }
     car.yaw += car.omega * DT;
 
