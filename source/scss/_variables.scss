@@ -6,45 +6,46 @@ $font-stack: "Libre Baskerville", serif;
 $open-sans: "Open Sans", sans-serif;
 
 //
-// Palette — forest, gold and wood
+// Palette — forest and wood
 //
-// Three families do all the work: deep forest greens for structure, gold for
-// every accent and highlight, and wood browns for warmth underneath. Parchment
-// stands in for white so nothing on the site is ever a cold grey.
+// Deep greens for structure, warm browns for everything that needs to stand
+// out, parchment instead of white. No third hue: the accent comes from the
+// brown family, which is why it needs two weights. A single mid-brown either
+// disappears into cream or goes muddy on dark green, so light surfaces get
+// leather and dark surfaces get tan.
 //
 
 // Forest — panels, cards, hexagons, anything structural
-$forest-900: #0b1410; // deepest wells and overlays
-$forest-800: #101c14; // dark page backgrounds
-$forest-700: #17281b; // cards, hexagons, inputs
-$forest-600: #203624; // raised surfaces, chips, bars
-$forest-500: #2d4834; // hairlines and borders on dark
-$moss: #7d9b6a; // muted green, secondary text on dark
+$forest-900: #0d1711; // deepest wells and overlays
+$forest-800: #132018; // dark page backgrounds
+$forest-700: #1b2e21; // cards, hexagons, inputs
+$forest-600: #24402c; // raised surfaces, chips, bars
+$forest-500: #325a3c; // hairlines and borders on dark
+$sage: #8fae7a; // muted green, secondary text on dark
 
-// Gold — the accent, used sparingly so it stays precious
-$gold: #c9a227;
-$gold-light: #e6c65f;
-$gold-deep: #8a6d15;
-
-// Wood — warmth, rules, muted body copy
-$wood-900: #2a1d13;
-$wood-700: #4a3524;
-$wood-500: #6b4f36;
-$wood-300: #a08258;
+// Wood — the accent family and the warmth under everything
+$bark-900: #2b1e14;
+$bark-700: #443023;
+$bark-500: #6b4c33;
+$bark-300: #9a7551;
+$leather: #8a5230; // accent on parchment: titles, buttons, links
+$leather-deep: #6d3f24; // pressed and hover states
+$tan: #c8a179; // accent on dark: the same job, one surface up
+$tan-dim: #ab8a68; // muted body copy on dark
 
 // Parchment — light surfaces, in place of white
-$parchment: #f5efe2;
-$parchment-dim: #eae1cd;
-$parchment-line: #ddd0b4;
+$parchment: #f4eee1;
+$parchment-dim: #e8dfcb;
+$parchment-line: #d9cbb0;
 
 //
 // Semantic aliases — everything downstream refers to these
 //
-$primary-color: $gold;
+$primary-color: $leather;
 $light-dark: $forest-700;
-$light: #fbf7ec; // warm white for text and rules on dark
-$text-color: #6f5c44; // body copy on parchment
-$title-color: #1d2f21; // headings on parchment
+$light: #f7f2e7; // warm white for text and rules on dark
+$text-color: #5a4733; // body copy on parchment
+$title-color: #1b2e21; // headings on parchment
 $border-color: $parchment-line;
 
 //
