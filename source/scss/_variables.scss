@@ -6,14 +6,46 @@ $font-stack: "Libre Baskerville", serif;
 $open-sans: "Open Sans", sans-serif;
 
 //
-// Colors
+// Palette — forest, gold and wood
 //
-$primary-color: #fa6862;
-$light-dark: #1e2530;
-$light: #fff;
-$text-color: #ababab;
-$title-color: #1e2530;
-$border-color: #eee;
+// Three families do all the work: deep forest greens for structure, gold for
+// every accent and highlight, and wood browns for warmth underneath. Parchment
+// stands in for white so nothing on the site is ever a cold grey.
+//
+
+// Forest — panels, cards, hexagons, anything structural
+$forest-900: #0b1410; // deepest wells and overlays
+$forest-800: #101c14; // dark page backgrounds
+$forest-700: #17281b; // cards, hexagons, inputs
+$forest-600: #203624; // raised surfaces, chips, bars
+$forest-500: #2d4834; // hairlines and borders on dark
+$moss: #7d9b6a; // muted green, secondary text on dark
+
+// Gold — the accent, used sparingly so it stays precious
+$gold: #c9a227;
+$gold-light: #e6c65f;
+$gold-deep: #8a6d15;
+
+// Wood — warmth, rules, muted body copy
+$wood-900: #2a1d13;
+$wood-700: #4a3524;
+$wood-500: #6b4f36;
+$wood-300: #a08258;
+
+// Parchment — light surfaces, in place of white
+$parchment: #f5efe2;
+$parchment-dim: #eae1cd;
+$parchment-line: #ddd0b4;
+
+//
+// Semantic aliases — everything downstream refers to these
+//
+$primary-color: $gold;
+$light-dark: $forest-700;
+$light: #fbf7ec; // warm white for text and rules on dark
+$text-color: #6f5c44; // body copy on parchment
+$title-color: #1d2f21; // headings on parchment
+$border-color: $parchment-line;
 
 //
 // Hexagon

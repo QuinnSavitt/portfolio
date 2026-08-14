@@ -168,13 +168,13 @@
     letter-spacing: 1px;
   }
   .skill-name {
-    border-right: 2px solid #2e333a;
+    border-right: 2px solid $forest-500;
     min-width: 160px;
     text-align: center;
     text-transform: uppercase;
   }
   .skill-bar {
-    background-color: #07080b;
+    background-color: $forest-900;
     border-radius: 15px;
     margin: 0 15px;
     @include flex-grow(1);
@@ -186,7 +186,7 @@
     width: 0;
   }
   .skill-lavel {
-    border-left: 2px solid #2e333a;
+    border-left: 2px solid $forest-500;
     min-width: 70px;
     text-align: center;
     @include align-items(flex-end);
@@ -217,7 +217,7 @@
   }
 
   .overlay {
-    background-color: rgba(#1e2530, 0.96);
+    background-color: rgba($forest-700, 0.96);
     position: absolute;
     left: 0;
     top: 0;
@@ -275,7 +275,7 @@
   position: relative;
   .section-title {
     background-color: $light-dark;
-    border-bottom: 1px solid #293342;
+    border-bottom: 1px solid $forest-600;
     left: 0;
     margin-bottom: 0;
     padding: 15px 34px 14px;
@@ -288,6 +288,12 @@
 
 .nicescroll-rails {
   z-index: 2;
+}
+
+// the history panel only scrolls vertically; the horizontal rail just draws a
+// stray line across the top of the page
+.nicescroll-rails-hr {
+  display: none !important;
 }
 
 .history-scroller {
@@ -325,7 +331,7 @@
     text-transform: uppercase;
   }
   span {
-    color: #aaaaaa;
+    color: $wood-300;
     font-size: 12px;
   }
 }
@@ -335,7 +341,7 @@
   position: relative;
   width: 66px;
   height: 38.11px;
-  background-color: #293342;
+  background-color: $forest-600;
   margin: 19.05px 0;
   &::before,
   &::after {
@@ -347,12 +353,12 @@
   }
   &::before {
     bottom: 100%;
-    border-bottom: 19.05px solid #293342;
+    border-bottom: 19.05px solid $forest-600;
   }
   &::after {
     top: 100%;
     width: 0;
-    border-top: 19.05px solid #293342;
+    border-top: 19.05px solid $forest-600;
   }
 }
 
@@ -369,7 +375,7 @@
   }
   .st0 {
     stroke: $light-dark;
-    fill: #fff;
+    fill: $light;
   }
   .st1 {
     fill: $light-dark;
@@ -436,7 +442,7 @@
     }
   }
   .text {
-    border: 1px solid #cecece;
+    border: 1px solid $parchment-line;
     font-size: 14px;
     font-style: italic;
     line-height: 24px;
@@ -641,7 +647,7 @@
   position: relative;
   width: 43px;
   height: 24.83px;
-  background-color: #1e2530;
+  background-color: $forest-700;
   margin: 12.41px 0;
   @include transition(all 0.3s ease 0s);
   &::before,
@@ -655,12 +661,12 @@
   }
   &::before {
     bottom: 100%;
-    border-bottom: 12.41px solid #1e2530;
+    border-bottom: 12.41px solid $forest-700;
   }
   &::after {
     top: 100%;
     width: 0;
-    border-top: 12.41px solid #1e2530;
+    border-top: 12.41px solid $forest-700;
   }
   &:hover {
     &::after {
@@ -682,7 +688,7 @@
       margin-left: 5px;
     }
     label.error {
-      color: #ff0000;
+      color: #b4432f;
       font-size: 13px;
       margin: 0;
     }
@@ -704,7 +710,7 @@
 
   .form-control {
     background-color: $light-dark;
-    color: #bcbcbc;
+    color: $parchment-dim;
     border: 0 none;
     border-radius: 3px;
     height: 48px;
@@ -713,7 +719,7 @@
     font-family: $open-sans;
     &:focus {
       box-shadow: none;
-      color: #fff;
+      color: $light;
     }
   }
 

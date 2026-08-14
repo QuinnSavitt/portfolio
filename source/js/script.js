@@ -2,8 +2,8 @@
 	"use strict";
 
 	$(".history-scroller").niceScroll({
-		cursorwidth: "10px",
-		background: "#0d1015",
+		cursorwidth: "8px",
+		background: "#16241a",
 		cursorborder: "0",
 		cursorborderradius: "0",
 		autohidemode: false,

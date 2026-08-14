@@ -6,19 +6,19 @@
  */
 
 .dark {
-  background-color: #0c0f15;
+  background-color: #101c14;
 }
 .dark .page-home .overlay {
-  background-color: rgba(14, 17, 24, 0.97);
+  background-color: rgba(11, 20, 16, 0.97);
 }
 .dark .page-title h2 {
-  color: #ffffff;
+  color: #fbf7ec;
 }
 .dark .page-title .title-bg {
-  color: rgba(70, 88, 124, 0.06);
+  color: rgba(125, 155, 106, 0.06);
 }
 .dark .section-title h3::before {
-  background-color: #fff;
+  background-color: #fbf7ec;
 }
 .dark h1,
 .dark h2,
@@ -27,19 +27,19 @@
 .dark h5,
 .dark h6,
 .dark .about-author .author-desc p {
-  color: #fff;
+  color: #fbf7ec;
 }
 .dark .switcher-body h4 {
-  color: #0c0f15;
+  color: #101c14;
 }
 .dark .service-hex .st0 {
   fill: transparent;
 }
 .dark .service-hex:hover .st0 {
-  fill: #fff;
+  fill: #fbf7ec;
 }
 .dark .testimonials .text,
 .dark .btn-border {
-  border-color: #1e2530;
+  border-color: #17281b;
 }
 /*# sourceMappingURL=dark.css.map */

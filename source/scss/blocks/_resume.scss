@@ -19,7 +19,7 @@
 
   .history-text {
     ul {
-      color: #ababab;
+      color: $wood-300;
       font-size: 13px;
       line-height: 22px;
       margin: 8px 0 0;
@@ -71,7 +71,7 @@
   margin-top: 30px;
   text-align: center;
   span {
-    color: #8b97ab;
+    color: $moss;
     display: inline-block;
     font-family: $open-sans;
     font-size: 11px;

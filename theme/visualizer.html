@@ -22,21 +22,21 @@
       font-weight: 700;
       letter-spacing: 1.2px;
       text-transform: uppercase;
-      color: #cfd6e4;
-      background: rgba(30, 37, 48, 0.92);
-      border: 1px solid #333f52;
+      color: #eae1cd;
+      background: rgba(23, 40, 27, 0.92);
+      border: 1px solid #2d4834;
       border-radius: 4px;
       padding: 8px 14px;
       text-decoration: none;
     }
-    .qs-home:hover { color: #fff; border-color: #fa6862; }
+    .qs-home:hover { color: #fbf7ec; border-color: #c9a227; }
   </style>
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
       color: white;
-      background: #0d1117;
+      background: #101c14;
       overflow: hidden;
       text-align: center;
     }
@@ -56,17 +56,17 @@
       padding: 8px 16px;
       border: none;
       border-radius: 5px;
-      background: #444;
+      background: #203624;
       color: white;
       cursor: pointer;
     }
 
     button:hover {
-      background: #666;
+      background: #2d4834;
     }
 
     button.active {
-      background: #fa6862;
+      background: #c9a227;
     }
 
     label {
@@ -134,17 +134,18 @@
     let mood = 'hype';
 
     const colors = {
+      // embers and gold when it is loud, deep forest when it is not
       hype: {
-        bg: (bass) => `rgb(${Math.min(bass * 2, 255)}, 0, ${Math.min(bass * 2, 255)})`,
-        bar: (val) => `rgb(${val + 100}, 50, 200)`,
-        wave: '#00ffff',
-        burst: 'rgba(255, 255, 255, 0.8)',
+        bg: (bass) => `rgb(${Math.min(24 + bass, 92)}, ${Math.min(16 + bass * 0.55, 58)}, 12)`,
+        bar: (val) => `rgb(${Math.min(120 + val, 236)}, ${Math.min(88 + val * 0.55, 178)}, 46)`,
+        wave: '#e6c65f',
+        burst: 'rgba(251, 247, 236, 0.8)',
       },
       deep: {
-        bg: () => 'rgb(10, 20, 50)',
-        bar: () => 'rgba(100, 150, 200, 0.3)',
-        wave: 'rgba(0, 255, 255, 0.3)',
-        burst: 'rgba(180, 220, 255, 0.1)',
+        bg: () => 'rgb(11, 20, 16)',
+        bar: () => 'rgba(125, 155, 106, 0.32)',
+        wave: 'rgba(201, 162, 39, 0.55)',
+        burst: 'rgba(234, 225, 205, 0.12)',
       }
     };
 

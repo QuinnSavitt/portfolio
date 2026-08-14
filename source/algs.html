@@ -8,18 +8,18 @@
   <style>
     body {
       margin: 0;
-      background: #0d1117;
-      color: #fff;
+      background: #101c14;
+      color: #fbf7ec;
       font-family: sans-serif;
       text-align: center;
       padding: 40px 16px 24px;
     }
     h1 { margin: 0 0 18px; }
     .algo-header { font-family: ui-monospace, monospace; min-height: 22px; margin: 0 0 14px; }
-    #algo-name { color: #fa6862; }
+    #algo-name { color: #c9a227; }
     #viz {
-      background: #111;
-      border: 1px solid #333f52;
+      background: #0b1410;
+      border: 1px solid #2d4834;
       border-radius: 8px;
       max-width: 100%;
     }
@@ -27,13 +27,13 @@
     button {
       margin: 4px 5px;
       padding: 8px 16px;
-      background: #444;
+      background: #203624;
       border: none;
       border-radius: 5px;
       color: white;
       cursor: pointer;
     }
-    button:hover { background: #fa6862; }
+    button:hover { background: #c9a227; }
     button:disabled { opacity: 0.5; cursor: default; }
     .qs-home {
       position: fixed;
@@ -44,14 +44,14 @@
       font-weight: 700;
       letter-spacing: 1.2px;
       text-transform: uppercase;
-      color: #cfd6e4;
-      background: rgba(30, 37, 48, 0.92);
-      border: 1px solid #333f52;
+      color: #eae1cd;
+      background: rgba(23, 40, 27, 0.92);
+      border: 1px solid #2d4834;
       border-radius: 4px;
       padding: 8px 14px;
       text-decoration: none;
     }
-    .qs-home:hover { color: #fff; border-color: #fa6862; }
+    .qs-home:hover { color: #fbf7ec; border-color: #c9a227; }
   </style>
 </head>
 <body>
@@ -95,7 +95,7 @@
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const w = canvas.width/arr.length;
     arr.forEach((h,i)=>{
-      ctx.fillStyle = highlights[i]||'#007bff';
+      ctx.fillStyle = highlights[i]||'#7d9b6a';
       ctx.fillRect(i*w, canvas.height-h, w-1, h);
     });
   }
@@ -107,7 +107,7 @@
     for(let n=arr.length;n>1;n--){
       for(let i=0;i<n-1;i++){
         if(abort) return;
-        drawArray(arr,{[i]:'#f00',[i+1]:'#f00'});
+        drawArray(arr,{[i]:'#e6c65f',[i+1]:'#e6c65f'});
         playTone(freqFromHeight(arr[i]));
         await wait(15);
         if(arr[i]>arr[i+1]) [arr[i],arr[i+1]]=[arr[i+1],arr[i]];
@@ -123,7 +123,7 @@
       while(j>=0 && arr[j]>key){
         if(abort) return;
         arr[j+1]=arr[j];
-        drawArray(arr,{[j]:'#f00',[j+1]:'#f00'});
+        drawArray(arr,{[j]:'#e6c65f',[j+1]:'#e6c65f'});
         playTone(freqFromHeight(arr[j]));
         await wait(15);
         j--;
@@ -140,7 +140,7 @@
       for(let j=i+1;j<arr.length;j++){
         if(abort) return;
         if(arr[j]<arr[m]) m=j;
-        drawArray(arr,{[j]:'#f00',[m]:'#0a0'});
+        drawArray(arr,{[j]:'#e6c65f',[m]:'#f5efe2'});
         playTone(freqFromHeight(arr[j]));
         await wait(15);
       }
@@ -157,7 +157,7 @@
         let tmp=arr[i],j=i;
         while(j>=gap && arr[j-gap]>tmp){
           arr[j]=arr[j-gap];
-          drawArray(arr,{[j]:'#f00',[j-gap]:'#0a0'});
+          drawArray(arr,{[j]:'#e6c65f',[j-gap]:'#f5efe2'});
           playTone(freqFromHeight(arr[j]));
           await wait(15);
           j-=gap;
@@ -176,7 +176,7 @@
         if(abort) return;
         if(j>=R.length||(i<L.length&&L[i]<R[j])) arr[k++]=L[i++];
         else arr[k++]=R[j++];
-        drawArray(arr,{[k-1]:'#f00'});
+        drawArray(arr,{[k-1]:'#e6c65f'});
         playTone(freqFromHeight(arr[k-1]));
         await wait(15);
       }
@@ -202,7 +202,7 @@
         if(abort) return;
         if(i<=j){
           [arr[i],arr[j]]=[arr[j],arr[i]];
-          drawArray(arr,{[i]:'#f00',[j]:'#f00'});
+          drawArray(arr,{[i]:'#e6c65f',[j]:'#e6c65f'});
           playTone(freqFromHeight(arr[i]));
           await wait(15);
           i++; j--;
@@ -230,7 +230,7 @@
         const m=heapify(n,r);
         if(m===r) break;
         [arr[r],arr[m]]=[arr[m],arr[r]];
-        drawArray(arr,{[r]:'#f00',[m]:'#f00'});
+        drawArray(arr,{[r]:'#e6c65f',[m]:'#e6c65f'});
         playTone(freqFromHeight(arr[r]));
         await wait(15);
         r=m;
@@ -238,7 +238,7 @@
     }
     for(let i=n-1;i>0;i--){
       [arr[0],arr[i]]=[arr[i],arr[0]];
-      drawArray(arr,{0:'#f00',[i]:'#f00'});
+      drawArray(arr,{0:'#e6c65f',[i]:'#e6c65f'});
       playTone(freqFromHeight(arr[i]));
       await wait(15);
       let r=0;
@@ -247,7 +247,7 @@
         const m=heapify(i,r);
         if(m===r) break;
         [arr[r],arr[m]]=[arr[m],arr[r]];
-        drawArray(arr,{[r]:'#f00',[m]:'#f00'});
+        drawArray(arr,{[r]:'#e6c65f',[m]:'#e6c65f'});
         playTone(freqFromHeight(arr[r]));
         await wait(15);
         r=m;
@@ -263,7 +263,7 @@
       sw=false;
       for(let i=start;i<end;i++){
         if(abort) return;
-        drawArray(arr,{[i]:'#f00',[i+1]:'#f00'});
+        drawArray(arr,{[i]:'#e6c65f',[i+1]:'#e6c65f'});
         playTone(freqFromHeight(arr[i]));
         await wait(15);
         if(arr[i]>arr[i+1]){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; sw=true; }
@@ -271,7 +271,7 @@
       end--;
       for(let i=end;i>start;i--){
         if(abort) return;
-        drawArray(arr,{[i]:'#f00',[i-1]:'#f00'});
+        drawArray(arr,{[i]:'#e6c65f',[i-1]:'#e6c65f'});
         playTone(freqFromHeight(arr[i]));
         await wait(15);
         if(arr[i]<arr[i-1]){ [arr[i],arr[i-1]]=[arr[i-1],arr[i]]; sw=true; }
@@ -289,7 +289,7 @@
       sw=false;
       for(let i=0;i+gap<arr.length;i++){
         if(abort) return;
-        drawArray(arr,{[i]:'#f00',[i+gap]:'#f00'});
+        drawArray(arr,{[i]:'#e6c65f',[i+gap]:'#e6c65f'});
         playTone(freqFromHeight(arr[i]));
         await wait(15);
         if(arr[i]>arr[i+gap]){ [arr[i],arr[i+gap]]=[arr[i+gap],arr[i]]; sw=true; }
@@ -308,7 +308,7 @@
         [arr[idx],arr[idx-1]]=[arr[idx-1],arr[idx]];
         idx--;
       }
-      drawArray(arr,{[idx]:'#f00'});
+      drawArray(arr,{[idx]:'#e6c65f'});
       playTone(freqFromHeight(arr[idx]||0));
       await wait(15);
     }
@@ -323,14 +323,14 @@
       for(let i=1;i+1<arr.length;i+=2){
         if(abort) return;
         if(arr[i]>arr[i+1]){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; sorted=false; }
-        drawArray(arr,{[i]:'#f00',[i+1]:'#f00'});
+        drawArray(arr,{[i]:'#e6c65f',[i+1]:'#e6c65f'});
         playTone(freqFromHeight(arr[i]));
         await wait(15);
       }
       for(let i=0;i+1<arr.length;i+=2){
         if(abort) return;
         if(arr[i]>arr[i+1]){ [arr[i],arr[i+1]]=[arr[i+1],arr[i]]; sorted=false; }
-        drawArray(arr,{[i]:'#f00',[i+1]:'#f00'});
+        drawArray(arr,{[i]:'#e6c65f',[i+1]:'#e6c65f'});
         playTone(freqFromHeight(arr[i]));
         await wait(15);
       }
@@ -347,7 +347,7 @@
       if(pos===start) continue;
       while(item===arr[pos]) pos++;
       [arr[pos],item]=[item,arr[pos]];
-      drawArray(arr,{[pos]:'#f00'});
+      drawArray(arr,{[pos]:'#e6c65f'});
       playTone(freqFromHeight(arr[pos]));
       await wait(15);
       while(pos!==start){
@@ -355,7 +355,7 @@
         for(let i=start+1;i<arr.length;i++) if(arr[i]<item) pos++;
         while(item===arr[pos]) pos++;
         [arr[pos],item]=[item,arr[pos]];
-        drawArray(arr,{[pos]:'#f00'});
+        drawArray(arr,{[pos]:'#e6c65f'});
         playTone(freqFromHeight(arr[pos]));
         await wait(15);
       }
@@ -391,7 +391,7 @@
     async function ss(i,j){
       if(abort) return;
       if(arr[i]>arr[j]) [arr[i],arr[j]]=[arr[j],arr[i]];
-      drawArray(arr,{[i]:'#f00',[j]:'#f00'});
+      drawArray(arr,{[i]:'#e6c65f',[j]:'#e6c65f'});
       playTone(freqFromHeight(arr[i]));
       await wait(30);
       if(j-i>1){
@@ -416,7 +416,7 @@
       while (holes[i]-- > 0) {
         if(abort) return;
         arr[idx]=i+min;
-        drawArray(arr,{[idx]:'#f00'});
+        drawArray(arr,{[idx]:'#e6c65f'});
         playTone(freqFromHeight(arr[idx]));
         await wait(5);
         idx++;
@@ -435,7 +435,7 @@
       while(count[i]-->0){
         if(abort) return;
         arr[idx]=i;
-        drawArray(arr,{[idx]:'#f00'});
+        drawArray(arr,{[idx]:'#e6c65f'});
         playTone(freqFromHeight(arr[idx]));
         await wait(5);
         idx++;
@@ -460,7 +460,7 @@
       }
       for(let i=0;i<n;i++){
         arr[i]=output[i];
-        drawArray(arr,{[i]:'#f00'});
+        drawArray(arr,{[i]:'#e6c65f'});
         playTone(freqFromHeight(arr[i]));
         await wait(5);
       }
@@ -483,7 +483,7 @@
       for(const v of b){
         if(abort) return;
         arr[idx]=v;
-        drawArray(arr,{[idx]:'#f00'});
+        drawArray(arr,{[idx]:'#e6c65f'});
         playTone(freqFromHeight(arr[idx]));
         await wait(5);
         idx++;
@@ -498,7 +498,7 @@
     async function compareAndSwap(i,j,dir){
       if(abort) return;
       if((arr[i]>arr[j])===dir) [arr[i],arr[j]]=[arr[j],arr[i]];
-      drawArray(arr,{[i]:'#f00',[j]:'#f00'});
+      drawArray(arr,{[i]:'#e6c65f',[j]:'#e6c65f'});
       playTone(freqFromHeight(arr[i]));
       await wait(15);
     }

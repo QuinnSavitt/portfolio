@@ -15,19 +15,19 @@
   <link rel="icon" href="images/favicon.png" type="image/x-icon">
   <style>
     :root{
-      --bg: #f4fbff;
-      --panel: #eaf6fb;
-      --muted: #7b98a6;
-      --accent: #3aa0d9;
-      --terminal: #1e90ff;
-      --node: #0b6b3b;
-      --line: #000000;
-      --arrow: #d93025;
-      --subtext: #1e90ff;
+      --bg: #f5efe2;
+      --panel: #eae1cd;
+      --muted: #8a7454;
+      --accent: #8a6d15;
+      --terminal: #7a5a34;
+      --node: #1f5132;
+      --line: #3a2a1e;
+      --arrow: #b4432f;
+      --subtext: #7a5a34;
     }
     *{box-sizing:border-box;font-family:Inter,Segoe UI,Arial,sans-serif}
-    body{margin:0;background:var(--bg);color:#0c2b2e}
-    header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:linear-gradient(90deg,var(--panel),#ffffff);border-bottom:1px solid #dfeff4}
+    body{margin:0;background:var(--bg);color:#2a2118}
+    header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:linear-gradient(90deg,var(--panel),#faf6ec);border-bottom:1px solid #ddd0b4}
     header h1{margin:0;font-size:18px;color:var(--muted)}
     .toolbar button{margin-left:8px;padding:6px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);background:white;cursor:pointer}
     .toolbar-link{display:inline-block;margin-left:8px;padding:6px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);background:white;color:inherit;text-decoration:none}
@@ -36,10 +36,10 @@
     .right{flex:1;position:relative}
     .tabs{display:flex;gap:6px;margin-bottom:8px}
     .tab{flex:1;padding:8px;background:transparent;border:1px solid transparent;border-radius:6px;cursor:pointer}
-    .tab.active{background:var(--panel);border-color:#cfeffb}
+    .tab.active{background:var(--panel);border-color:#ddd0b4}
     .editor-pane{background:var(--panel);padding:8px;border-radius:8px}
     .editor-pane.hidden{display:none}
-    textarea{width:100%;height:420px;border:0;resize:none;background:transparent;font-family:ui-monospace,monospace;font-size:13px;padding:12px;color:#033;outline:none}
+    textarea{width:100%;height:420px;border:0;resize:none;background:transparent;font-family:ui-monospace,monospace;font-size:13px;padding:12px;color:#2a2118;outline:none}
     .syt-toolbar{display:flex;gap:8px;margin-bottom:8px}
     .syt-toolbar button{padding:6px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.08);background:white;cursor:pointer}
     .synta-editor{position:relative;height:420px;overflow:hidden}
@@ -47,16 +47,16 @@
     #syntaGutter::-webkit-scrollbar{display:none}
     #syntaHighlight{display:none}
     #syntaHighlight .num{color:var(--muted)}
-    #syntaHighlight .ref{color:#8a4fff}
+    #syntaHighlight .ref{color:#8a5a1f}
     #syntaHighlight .arrow{color:var(--arrow)}
     #syntaHighlight .star{color:var(--accent)}
-    #syntaHighlight .brace{color:#0c6}
+    #syntaHighlight .brace{color:#1f5132}
     #syntaHighlight .node{color:var(--node)}
-    #syntaInput{position:absolute;inset:0;padding:12px 12px 12px 56px;border:0;resize:none;background:transparent;color:#033;-webkit-text-fill-color:#033;caret-color:#033;outline:none;font-family:ui-monospace,monospace;font-size:13px;line-height:1.5;white-space:pre;overflow:auto;z-index:1}
-    #syntaInput::selection{background:rgba(30,144,255,0.18)}
+    #syntaInput{position:absolute;inset:0;padding:12px 12px 12px 56px;border:0;resize:none;background:transparent;color:#2a2118;-webkit-text-fill-color:#2a2118;caret-color:#2a2118;outline:none;font-family:ui-monospace,monospace;font-size:13px;line-height:1.5;white-space:pre;overflow:auto;z-index:1}
+    #syntaInput::selection{background:rgba(201,162,39,0.22)}
 
-    canvas{width:100%;height:700px;background:linear-gradient(180deg,#ffffff, #f7fdff);border-radius:10px;border:1px solid #e0f2f8}
-    .errors{position:absolute;left:12px;top:12px;background:#fff4f4;border:1px solid #ffd2d2;padding:8px;border-radius:6px;color:#8a1b1b}
+    canvas{width:100%;height:700px;background:linear-gradient(180deg,#faf6ec, #faf6ec);border-radius:10px;border:1px solid #ddd0b4}
+    .errors{position:absolute;left:12px;top:12px;background:#f7ece2;border:1px solid #e0c3a8;padding:8px;border-radius:6px;color:#8a3b22}
     .errors.hidden{display:none}
     footer{padding:12px 20px;color:var(--muted)}
 

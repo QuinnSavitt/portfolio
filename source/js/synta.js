@@ -136,7 +136,7 @@
       node.Text = node.type === 'term' ? (node.word || node.label || '?') : (node.label || '?');
       node.Category = node.pos || node.label || null;
       node.TextSize = Number(node.TextSize) || 18;
-      node.Color = node.Color || (node.type === 'term' ? '#1e90ff' : '#0b6b3b');
+      node.Color = node.Color || (node.type === 'term' ? '#7a5a34' : '#1f5132');
       node.Font = node.Font || 'Inter, "Segoe UI", Arial, sans-serif';
       node.Parent = parent || null;
       node.Children = (node.children || []);
@@ -787,9 +787,9 @@
     const x = n._x || 100;
     const y = n._y || 100;
     const isTerm = n.type === 'term' || (!(n.children && n.children.length));
-    const termColor = colorFromValue(n.Color, '#1e90ff');
-    const nodeColor = colorFromValue(n.Color, '#0b6b3b');
-    const subColor = colorFromValue(n.SubColor || n.Color, '#1e90ff');
+    const termColor = colorFromValue(n.Color, '#7a5a34');
+    const nodeColor = colorFromValue(n.Color, '#1f5132');
+    const subColor = colorFromValue(n.SubColor || n.Color, '#7a5a34');
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     // Bold, larger labels for readability
