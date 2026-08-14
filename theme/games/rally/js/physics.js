@@ -73,6 +73,9 @@ export function neutralSteer(car) {
  * quickest of all so countersteer feels instant. sigma is -1..1. */
 export function updateSteer(st, dir, v, dt) {
   const speedT = Math.min(1, v / 42);
+  // coerce: a stray undefined here poisons sigma with NaN, and in a
+  // deterministic sim that quietly corrupts every value downstream forever
+  dir = dir > 0 ? 1 : dir < 0 ? -1 : 0;
   if (dir !== 0) {
     const opposite = st.sigma * dir < -0.02;
     const base = opposite ? 5.2 : 3.4 - speedT * 1.5;
@@ -106,6 +109,7 @@ export function makeCar() {
     wheelspin: 0, slip: 0, skid: 0,
     surface: "road", zone: "road",
     axSmooth: 0,
+    alphaFs: 0, alphaRs: 0,      // slip angles after tyre relaxation
     damage: 0, lastImpact: 0, crashTimer: 0,
     tick: 0,
     s: 0, d: 0, roadGrade: 0,
@@ -296,8 +300,18 @@ export function step(car, stage, input) {
     // ---- slip angles
     const vxA = Math.max(0.5, Math.abs(car.vx));
     const lowSpeed = Math.min(1, vxA / 3.5);
-    const alphaF = Math.atan((car.vyLat + CAR.a * car.omega) / vxA) - car.steer * Math.sign(car.vx >= 0 ? 1 : -1);
-    const alphaR = Math.atan((car.vyLat - CAR.b * car.omega) / vxA);
+    const alphaFraw = Math.atan((car.vyLat + CAR.a * car.omega) / vxA) - car.steer * Math.sign(car.vx >= 0 ? 1 : -1);
+    const alphaRraw = Math.atan((car.vyLat - CAR.b * car.omega) / vxA);
+
+    /* Tyre relaxation: a tyre builds cornering force over a length of travel,
+     * it does not appear the instant the wheel moves. Without this a stab at
+     * the wheel spiked the yaw rate to over twice its steady value, which is
+     * what made quick corners feel like they snapped away on turn-in. Steady
+     * state is untouched, so the grip ceiling is exactly where it was. */
+    const relax = Math.min(1, (Math.abs(car.vx) * DT) / 0.55);
+    car.alphaFs += (alphaFraw - car.alphaFs) * relax;
+    car.alphaRs += (alphaRraw - car.alphaRs) * relax;
+    const alphaF = car.alphaFs, alphaR = car.alphaRs;
 
     // ---- loads with longitudinal transfer
     const L = CAR.a + CAR.b;
@@ -307,15 +321,26 @@ export function step(car, stage, input) {
 
     // ---- longitudinal forces
     const eng = engineForce(car, muLong);
-    let driveF = eng * CAR.frontDrive;
-    let driveR = eng * (1 - CAR.frontDrive);
+    /* Torque split shifts forward as the rear takes on lateral load, the way a
+     * modern rally centre diff does. Taking drive off the loaded axle and
+     * putting it on the one with capacity to spare pulls the car through the
+     * corner instead of spitting it round. */
+    const rearLoad = Math.min(1, Math.abs(alphaR) / 0.16);
+    const splitF = CAR.frontDrive + 0.20 * rearLoad;
+    let driveF = eng * splitF;
+    let driveR = eng * (1 - splitF);
     let brakeF = car.brake * CAR.brakeForce * CAR.brakeBias;
     let brakeR = car.brake * CAR.brakeForce * (1 - CAR.brakeBias);
     let rearMuLat = mu, rearC = C;
     if (car.handbrake) {
-      brakeR += 9000;
+      /* Enough to break the rear away and rotate the car, but not the total
+       * grip wipeout it used to be - that pitched it round faster than anyone
+       * could catch, so the handbrake was a trap everywhere except a true
+       * hairpin. Softer rear mu plus the gentler falloff keeps the slide
+       * progressive and steerable. */
+      brakeR += 6000;
       driveR = 0;
-      rearMuLat = mu * 0.35;
+      rearMuLat = mu * 0.5;
       rearC = C + 0.5;
     }
     // engine braking
@@ -335,6 +360,18 @@ export function step(car, stage, input) {
     let spin = 0;
     if (driveF > tracF) { spin += (driveF - tracF) / tracF; driveF = tracF * 0.94; }
     if (driveR > tracR) { spin += (driveR - tracR) / tracR; driveR = tracR * 0.96; }
+
+    /* Traction budget. An axle already working hard sideways cannot also lay
+     * down full drive - the brake side has modulated for this all along, the
+     * drive side never did. Without it, going flat mid-corner drove the rear
+     * straight to the friction-ellipse floor and span the car, so a lighter
+     * corner could never be taken flat or on a lift. Slip angle is the honest
+     * measure of how much the axle is already spending sideways. */
+    const PEAK = 0.16;                       // ~ where the tyre curve peaks
+    const latUseF = Math.min(1, Math.abs(alphaF) / PEAK);
+    const latUseR = Math.min(1, Math.abs(alphaR) / PEAK);
+    driveF = Math.min(driveF, tracF * (1 - 0.30 * latUseF));
+    driveR = Math.min(driveR, tracR * (1 - 0.62 * latUseR));
     car.wheelspin += (Math.min(1, spin) - car.wheelspin) * 0.12;
     // EBD-style modulation: while steering, keep some tyre capacity lateral
     // instead of locking everything into braking (footbrake only, not handbrake)
@@ -348,8 +385,11 @@ export function step(car, stage, input) {
     // ---- lateral forces with friction ellipse
     const useF = Math.min(1, Math.abs(fxF) / (mu * fzF));
     const useR = Math.min(1, Math.abs(fxR) / (rearMuLat * fzR));
-    const latScaleF = Math.sqrt(Math.max(0.08, 1 - useF * useF));
-    const latScaleR = Math.sqrt(Math.max(0.08, 1 - useR * useR));
+    /* Floor on the ellipse: a saturated axle keeps roughly half its cornering
+     * force rather than almost none. Real tyres do not fall off that cliff,
+     * and the cliff is what made every mistake terminal instead of catchable. */
+    const latScaleF = Math.sqrt(Math.max(0.25, 1 - useF * useF));
+    const latScaleR = Math.sqrt(Math.max(0.25, 1 - useR * useR));
     let fyF = tyreLat(alphaF, fzF, mu, B, C) * latScaleF * lowSpeed;
     let fyR = tyreLat(alphaR, fzR, rearMuLat, B, rearC) * latScaleR * lowSpeed;
 
@@ -384,7 +424,19 @@ export function step(car, stage, input) {
     const yawAcc = (CAR.a * fyF * Math.cos(car.steer) - CAR.b * fyR) / CAR.izz;
     car.omega += yawAcc * DT;
     // mild speed-dependent yaw damping (tyre relaxation / aligning torque)
-    car.omega -= car.omega * Math.min(0.9, 0.15 + Math.abs(car.vx) * 0.014) * DT * 2.2;
+    car.omega -= car.omega * Math.min(0.9, 0.18 + Math.abs(car.vx) * 0.014) * DT * 2.8;
+
+    /* Big-slide damping. A rally car lives at a lively angle, so nothing here
+     * touches a normal slide; past about 26 degrees of body slip, though, the
+     * old model would keep winding the car up until it was facing backwards
+     * with nothing the driver could do. Bleeding yaw rate only in that region
+     * keeps a slide a slide - it does not make the car faster, it makes the
+     * moment survivable. */
+    const betaNow = Math.abs(Math.atan2(car.vyLat, Math.max(4, Math.abs(car.vx))));
+    const excess = betaNow - 0.45;
+    if (excess > 0) {
+      car.omega -= car.omega * Math.min(0.8, excess * 2.4) * DT * 2.0;
+    }
     car.yaw += car.omega * DT;
 
     // rumble wobble on loose stuff (cosmetic magnitudes, deterministic)
