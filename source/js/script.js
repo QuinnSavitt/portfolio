@@ -14,8 +14,18 @@
 		if (icon) icon.className = dark ? "tf-ion-ios-sunny" : "tf-ion-ios-moon";
 	}
 
+	var FADE_MS = 350;
+	var fadeTimer = null;
+
 	if (toggle) {
 		toggle.addEventListener("click", function() {
+			// only fade for the duration of the swap, so page loads stay instant
+			root.classList.add("theme-fading");
+			window.clearTimeout(fadeTimer);
+			fadeTimer = window.setTimeout(function() {
+				root.classList.remove("theme-fading");
+			}, FADE_MS + 60);
+
 			var dark = root.classList.toggle("dark");
 			try { localStorage.setItem("qs-theme", dark ? "dark" : "light"); } catch (e) {}
 			syncToggle();

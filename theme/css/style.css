@@ -1121,6 +1121,24 @@ label {
   color: #fff;
 }
 
+/* Ease the colours across when the theme is switched. The class is only on the
+ * page for the length of the fade, so this never runs on page load and never
+ * permanently alters the hover transitions these elements already carry. */
+.theme-fading,
+.theme-fading *,
+.theme-fading *::before,
+.theme-fading *::after {
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, fill 0.35s ease, stroke 0.35s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-fading,
+  .theme-fading *,
+  .theme-fading *::before,
+  .theme-fading *::after {
+    transition: none !important;
+  }
+}
 .history-scroller {
   padding-top: 82px;
   max-height: 377px;
