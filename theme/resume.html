@@ -253,7 +253,10 @@ Essential Scripts
 <script src="plugins/isotope/isotope.pkgd.min.js"></script>
 <script src="plugins/slick/slick.min.js"></script>
 
-<script src="js/script.js"></script>
+<!-- ?v= must be bumped alongside css/style.css whenever either changes: they
+     are a pair, and shipping fresh markup against a cached script.js is what
+     makes the theme toggle appear but do nothing. -->
+<script src="js/script.js?v=4"></script>
 
 </body>
 </html>

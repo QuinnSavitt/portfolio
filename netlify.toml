@@ -10,3 +10,28 @@ X-Frame-Options = "DENY"
 X-XSS-Protection = "1; mode=block"
 Referrer-Policy = "same-origin"
 Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# The default here was a four hour cache with no revalidation, which meant a
+# deploy could leave a browser holding old CSS or JS against fresh markup for
+# the rest of the afternoon - fresh HTML with a stale script.js is how the
+# theme toggle ended up visible but dead. Ask every time instead; these files
+# are small and a 304 costs almost nothing.
+[[headers]]
+for = "/*.html"
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/css/*"
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/js/*"
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/images/favicon.png"
+[headers.values]
+Cache-Control = "public, max-age=0, must-revalidate"
