@@ -46,7 +46,12 @@ export const CAR = {
   brakeBias: 0.62,
   steerMax0: 0.62,   // rad at standstill
   steerFade: 900,    // higher = keeps more steering at speed
-  gears: [3.9, 2.65, 1.95, 1.52, 1.22, 1.0],
+  /* Top gear is geared to the rev limiter at VCAP (57 m/s, 205 km/h) rather
+   * than the 224 km/h it used to run out to. The speed profile assumes VCAP,
+   * so anything above it was speed the player could carry into a corner that
+   * had been sized without it - which is one of the reasons a "flat" corner
+   * was never flat. Rally stages do not run past 200 km/h anyway. */
+  gears: [3.9, 2.65, 1.95, 1.52, 1.3, 1.12],
   finalDrive: 3.75,
   shiftUp: 6900,
   shiftDown: 3400,
@@ -109,7 +114,7 @@ export function makeCar() {
     pitchV: 0, rollV: 0,
     groundPitch: 0, groundRoll: 0,
     sigma: 0, steer: 0,
-    throttle: 0, brake: 0, handbrake: false,
+    throttle: 0, brake: 0, handbrake: false, hbBlend: 0,
     gear: 1, rpm: CAR.idle,
     wheelspin: 0, slip: 0, skid: 0,
     surface: "road", zone: "road",
@@ -185,6 +190,12 @@ export function step(car, stage, input) {
   car.throttle += Math.max(-8 * DT, Math.min(8 * DT, thrTarget - car.throttle));
   car.brake += Math.max(-10 * DT, Math.min(10 * DT, brkTarget - car.brake));
   car.handbrake = !!input.handbrake;
+  /* Blend the lever in and out over ~120 ms. Everything the handbrake touches
+   * used to switch on the frame the key went down - rear grip, drive, and the
+   * whole stability assist at once - so the car became a different vehicle
+   * between two consecutive frames and a keyboard could not catch what came
+   * next. Same authority, reached over a tenth of a second. */
+  car.hbBlend += ((car.handbrake ? 1 : 0) - car.hbBlend) * Math.min(1, 9 * DT);
 
   // ---- ground sampling (s-hint keeps us on the right leg of the road)
   let gC = stage.groundHeight(car.x, car.z, car.s);
@@ -336,17 +347,16 @@ export function step(car, stage, input) {
     let driveR = eng * (1 - splitF);
     let brakeF = car.brake * CAR.brakeForce * CAR.brakeBias;
     let brakeR = car.brake * CAR.brakeForce * (1 - CAR.brakeBias);
-    let rearMuLat = mu, rearC = C;
-    if (car.handbrake) {
-      /* Enough to break the rear away and rotate the car, but not the total
-       * grip wipeout it used to be - that pitched it round faster than anyone
-       * could catch, so the handbrake was a trap everywhere except a true
-       * hairpin. Softer rear mu plus the gentler falloff keeps the slide
-       * progressive and steerable. */
-      brakeR += 8500;
-      driveR = 0;
-      rearMuLat = mu * 0.38;
-      rearC = C + 0.5;
+    /* Handbrake: lock the rear, take the drive off it, and let go of most of
+     * its cornering force so the car pivots. Enough to break the rear away
+     * and rotate the car, but not the total grip wipeout it used to be - that
+     * pitched it round faster than anyone could catch, so the handbrake was a
+     * trap everywhere except a true hairpin. */
+    const hb = car.hbBlend;
+    let rearMuLat = mu * (1 - 0.62 * hb), rearC = C + 0.5 * hb;
+    if (hb > 0.001) {
+      brakeR += 8500 * hb;
+      driveR *= 1 - hb;
     }
     // engine braking
     if (car.throttle < 0.05 && Math.abs(car.vx) > 2) {
@@ -439,7 +449,7 @@ export function step(car, stage, input) {
      * moment survivable. */
     const betaNow = Math.abs(Math.atan2(car.vyLat, Math.max(4, Math.abs(car.vx))));
     // pull the handbrake and you have asked for the big angle - let it come
-    const excess = betaNow - (car.handbrake ? 0.95 : 0.45);
+    const excess = betaNow - (0.45 + 0.5 * hb);
     if (excess > 0) {
       car.omega -= car.omega * Math.min(0.8, excess * 2.4) * DT * 2.0;
     }
@@ -453,9 +463,15 @@ export function step(car, stage, input) {
      * Both assists fade out in proportion to how much slide the driver is
      * deliberately calling for, so the handbrake and a bootful of steering
      * still hang the tail out and the ceiling stays where it was.
+     *
+     * The handbrake fades them a long way but not to nothing. It asks for
+     * rotation; it does not ask to be handed a different car. With no assist
+     * at all there was nothing holding the slide together, and the tail went
+     * past catching in the time it takes to notice - a quarter of it still
+     * lets the back come round hard, at a rate a person can answer.
      */
     const wantSlide = Math.min(1, Math.abs(car.sigma) * 1.3);
-    const assist = car.handbrake ? 0 : STABILITY * (1 - 0.7 * wantSlide);
+    const assist = STABILITY * (1 - 0.7 * wantSlide) * (1 - 0.75 * hb);
     if (assist > 0 && Math.abs(car.vx) > 3) {
       // the car goes where it points: bleed off sideways drift
       car.vyLat -= car.vyLat * Math.min(1, assist * 3.0 * DT);

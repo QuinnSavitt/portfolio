@@ -4,11 +4,15 @@
  *   node tools/rally-test.mjs           full sweep (generation + bot drives)
  *   node tools/rally-test.mjs gen       generation sweep only
  *   node tools/rally-test.mjs drive     bot test drives only
+ *   node tools/rally-test.mjs ladder    pace notes vs the input they need
  *   node tools/rally-test.mjs today     print today's stage + pace notes
  *
  * The gen sweep checks 61 consecutive days for validity and determinism.
  * The drive sweep runs the deterministic bot (the same one that gates
- * candidate selection in stage.js) through the real physics.
+ * candidate selection in stage.js) through the real physics. The ladder check
+ * drives a corner of every severity in every environment and confirms it
+ * still needs the input its note promises - see tools/rally-ladder.mjs, and
+ * run it directly for the full table.
  */
 import { pathToFileURL } from "url";
 import path from "path";
@@ -103,6 +107,13 @@ if (mode === "all" || mode === "drive") {
     console.log(`day ${day} ${st.env.id.padEnd(8)} est=${fmtTime(st.botTime)} drove=${res.finished ? fmtTime(res.t) : "DNF@" + Math.round(res.s) + "m (" + res.reason + ")"} offroad=${res.offRoad.toFixed(1)}s dmg=${res.maxDamage.toFixed(0)} ${ok ? "OK" : "FAIL"}`);
   }
   console.log(fails === 0 ? "DRIVE SWEEP OK" : `DRIVE SWEEP: ${fails} fails`);
+}
+
+if (mode === "all" || mode === "ladder") {
+  console.log("\n=== pace-note ladder ===");
+  const { ladderCheck } = await import(pathToFileURL(path.resolve(import.meta.dirname, "rally-ladder.mjs")).href);
+  const fails = ladderCheck(mode === "ladder");
+  console.log(fails === 0 ? "LADDER OK" : `LADDER: ${fails} severities do not need what they promise`);
 }
 
 if (mode === "today") {
