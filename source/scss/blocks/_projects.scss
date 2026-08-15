@@ -47,7 +47,7 @@
   // because these are logos rather than screenshots.
   .project-thumb {
     align-items: center;
-    background-color: $forest-600;
+    background-color: #212a36;
     display: flex;
     height: 190px;
     justify-content: center;
@@ -84,14 +84,13 @@
       color: inherit;
       &:hover,
       &:focus {
-        color: $tan;
+        color: $primary-color;
       }
     }
   }
 
   .project-cat {
-    // on the forest card, so the lighter weight of the accent
-    color: $tan;
+    color: $primary-color;
     display: block;
     font-size: 11px;
     letter-spacing: 1.2px;
@@ -100,7 +99,7 @@
   }
 
   .project-desc {
-    color: $tan-dim;
+    color: #aaaaaa;
     font-size: 13px;
     line-height: 22px;
     margin-bottom: 14px;
@@ -135,9 +134,9 @@
 
 // Small uppercase chip, shared by project cards and the resume skills block
 .tag-chip {
-  background-color: $forest-600;
+  background-color: #293342;
   border-radius: 2px;
-  color: $parchment-dim;
+  color: #cfd6e4;
   display: inline-block;
   font-size: 10px;
   letter-spacing: 1px;

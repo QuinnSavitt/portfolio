@@ -7,8 +7,6 @@ body {
   font-size: 16px;
   line-height: 30px;
   color: $text-color;
-  // parchment rather than white, so the greens and golds sit on something warm
-  background-color: $parchment;
 }
 
 a {
@@ -123,7 +121,7 @@ label {
 }
 
 .btn-border {
-  border: 1px solid $parchment-line;
+  border: 1px solid #d7d8db;
   display: inline-block;
   padding: 7px;
 }
@@ -195,7 +193,5 @@ label {
 }
 
 .nicescroll-cursors {
-  // muted, so it reads as a scrollbar rather than a gold stripe down the page
-  background: rgba($tan, 0.55) !important;
-  border-radius: 4px !important;
+  background: $primary-color !important;
 }

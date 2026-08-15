@@ -42,13 +42,32 @@ FACEBOOK: https://www.facebook.com/themefisher
   <link rel="stylesheet" href="plugins/themefisher-fonts/css/themefisher-fonts.min.css">  
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
 
   <!--Favicon-->
-  <link rel="icon" href="images/favicon.png?v=3" type="image/x-icon">
+  <link rel="icon" href="images/favicon.png?v=4" type="image/x-icon">
+
+  <!-- Set the theme before first paint, otherwise a dark-mode visitor gets a
+       white flash on every page load. Falls back to the OS preference. -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("qs-theme");
+        var dark = saved ? saved === "dark"
+          : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        // on <html>, not <body>: body does not exist yet at this point, and
+        // every rule in dark.scss is `.dark` plus a descendant selector
+        if (dark) document.documentElement.classList.add("dark");
+      } catch (e) {}
+    })();
+  </script>
 
 </head>
 <body><!-- set class="dark" on body tag for DARK-THEME -->
+
+  <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+    <i class="tf-ion-ios-moon"></i>
+  </button>
 
   <div class="preloader">
     <div class="loading-mask"></div>

@@ -94,8 +94,7 @@
   }
 
   h4 {
-    // card sits on forest, so the accent steps up a weight to stay readable
-    color: $tan;
+    color: $primary-color;
     font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.96px;
@@ -106,7 +105,7 @@
   // grows to fill the tallest card in the row, keeping the badges and
   // the button on a common baseline across the row
   .game-tagline {
-    color: $tan-dim;
+    color: #aaaaaa;
     font-size: 13px;
     line-height: 22px;
     margin-bottom: 15px;
@@ -134,7 +133,7 @@
 
 // Hexagon icon holder, same construction as the contact/history hexes
 .game-hex {
-  background-color: $forest-600;
+  background-color: #293342;
   display: block;
   height: 32.33px;
   margin: 16.16px auto 24px;
@@ -154,11 +153,11 @@
     @include transition(all 0.3s ease 0s);
   }
   &::before {
-    border-bottom: 16.16px solid $forest-600;
+    border-bottom: 16.16px solid #293342;
     bottom: 100%;
   }
   &::after {
-    border-top: 16.16px solid $forest-600;
+    border-top: 16.16px solid #293342;
     top: 100%;
   }
   i {
@@ -180,7 +179,7 @@
 
 .game-badge {
   border-radius: 2px;
-  color: $parchment-dim;
+  color: #cfd6e4;
   display: inline-block;
   font-size: 10px;
   letter-spacing: 1px;
@@ -189,21 +188,21 @@
   padding: 0 8px;
   text-transform: uppercase;
   vertical-align: top;
-  background-color: $forest-600;
+  background-color: #293342;
   &.daily {
     background-color: $primary-color;
     color: $light;
   }
   &.soon {
     background-color: transparent;
-    border: 1px solid $forest-500;
-    color: $sage;
+    border: 1px solid #3a465c;
+    color: #8b97ab;
     line-height: 18px;
   }
   &.played {
     background-color: transparent;
-    border: 1px solid $sage;
-    color: $tan;
+    border: 1px solid #4a7f63;
+    color: #7fc6a1;
     line-height: 18px;
   }
 }
@@ -228,7 +227,7 @@
   }
   &.disabled {
     border-style: dashed;
-    color: $sage;
+    color: #8b97ab;
     cursor: default;
     pointer-events: none;
   }

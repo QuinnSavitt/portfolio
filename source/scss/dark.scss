@@ -1,25 +1,31 @@
-// compiled standalone as well as appended to style.scss, so it needs the palette
-@import "variables";
+$light-dark: #1e2530;
 
 .dark {
-	background-color: $forest-800;
+	background-color: #0c0f15;
+
+	// The class lives on <html> so the theme can be set before first paint,
+	// but bootstrap gives <body> its own white background which would paint
+	// straight over it - and then the white headings land on white.
+	body {
+		background-color: #0c0f15;
+	}
 
 	.page-home .overlay {
-		background-color: rgba($forest-900, 0.97);
+		background-color: rgba(#0e1118, 0.97);
 	}
 
 	.page-title {
 		h2 {
-			color: $light;
+			color: #ffffff;
 		}
 
 		.title-bg {
-			color: rgba($sage, 0.06);
+			color: rgba(#46587c, 0.06);
 		}
 	}
 
 	.section-title h3::before {
-		background-color: $light;
+		background-color: #fff;
 	}
 
 	h1,
@@ -29,10 +35,10 @@
 	h5,
 	h6,
 	.about-author .author-desc p {
-		color: $light;
+		color: #fff;
 	}
 	.switcher-body h4 {
-		color: $forest-800;
+		color: #0c0f15;
 	}
 
 	.service-hex {
@@ -42,13 +48,13 @@
 
 		&:hover {
 			.st0 {
-				fill: $light;
+				fill: #fff;
 			}
 		}
 	}
 
 	.testimonials .text,
 	.btn-border {
-		border-color: $forest-700;
+		border-color: #1e2530;
 	}
 }

@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
-  <rect width="800" height="800" fill="#132018"/>
+  <rect width="800" height="800" fill="#12171f"/>
   <polygon points="400,150 616,275 616,525 400,650 184,525 184,275"
-    fill="none" stroke="#f7f2e7" stroke-width="14" stroke-linejoin="round"/>
-  <path d="M400 235 C 464 310, 464 428, 448 478 L 352 478 C 336 428, 336 310, 400 235 Z" fill="#c8a179"/>
-  <circle cx="400" cy="380" r="30" fill="#132018"/>
-  <circle cx="400" cy="380" r="30" fill="none" stroke="#f7f2e7" stroke-width="8"/>
-  <path d="M352 462 L292 545 L352 522 Z" fill="#f7f2e7"/>
-  <path d="M448 462 L508 545 L448 522 Z" fill="#f7f2e7"/>
-  <path d="M374 492 L400 575 L426 492 Z" fill="#f7f2e7"/>
+    fill="none" stroke="#ffffff" stroke-width="14" stroke-linejoin="round"/>
+  <path d="M400 235 C 464 310, 464 428, 448 478 L 352 478 C 336 428, 336 310, 400 235 Z" fill="#fa6862"/>
+  <circle cx="400" cy="380" r="30" fill="#12171f"/>
+  <circle cx="400" cy="380" r="30" fill="none" stroke="#ffffff" stroke-width="8"/>
+  <path d="M352 462 L292 545 L352 522 Z" fill="#ffffff"/>
+  <path d="M448 462 L508 545 L448 522 Z" fill="#ffffff"/>
+  <path d="M374 492 L400 575 L426 492 Z" fill="#ffffff"/>
 </svg>

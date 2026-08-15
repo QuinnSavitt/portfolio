@@ -1,9 +1,31 @@
 (function($) {
 	"use strict";
 
+	// Dark mode. The head script has already applied the stored choice so the
+	// page paints in the right theme; this only handles flipping it.
+	var root = document.documentElement;
+	var toggle = document.querySelector(".theme-toggle");
+
+	function syncToggle() {
+		if (!toggle) return;
+		var dark = root.classList.contains("dark");
+		toggle.setAttribute("aria-pressed", dark ? "true" : "false");
+		var icon = toggle.querySelector("i");
+		if (icon) icon.className = dark ? "tf-ion-ios-sunny" : "tf-ion-ios-moon";
+	}
+
+	if (toggle) {
+		toggle.addEventListener("click", function() {
+			var dark = root.classList.toggle("dark");
+			try { localStorage.setItem("qs-theme", dark ? "dark" : "light"); } catch (e) {}
+			syncToggle();
+		});
+		syncToggle();
+	}
+
 	$(".history-scroller").niceScroll({
-		cursorwidth: "8px",
-		background: "#1b2e21",
+		cursorwidth: "10px",
+		background: "#0d1015",
 		cursorborder: "0",
 		cursorborderradius: "0",
 		autohidemode: false,

@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
-  <rect width="800" height="800" fill="#27553a"/>
-  <g stroke="#f7f2e7" stroke-width="10" stroke-linecap="round">
+  <rect width="800" height="800" fill="#3aa0d9"/>
+  <g stroke="#ffffff" stroke-width="10" stroke-linecap="round">
     <line x1="400" y1="268" x2="268" y2="392"/>
     <line x1="400" y1="268" x2="532" y2="392"/>
     <line x1="255" y1="468" x2="255" y2="556"/>
     <line x1="545" y1="468" x2="545" y2="556"/>
   </g>
-  <g fill="#f7f2e7" font-family="Consolas, Menlo, monospace" font-weight="700" text-anchor="middle">
+  <g fill="#ffffff" font-family="Consolas, Menlo, monospace" font-weight="700" text-anchor="middle">
     <text x="400" y="252" font-size="88">S</text>
     <text x="255" y="452" font-size="72">NP</text>
     <text x="545" y="452" font-size="72">VP</text>
   </g>
-  <g fill="#f7f2e7">
+  <g fill="#ffffff">
     <circle cx="255" cy="592" r="16"/>
     <circle cx="545" cy="592" r="16"/>
   </g>

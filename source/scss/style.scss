@@ -168,25 +168,25 @@
     letter-spacing: 1px;
   }
   .skill-name {
-    border-right: 2px solid $forest-500;
+    border-right: 2px solid #2e333a;
     min-width: 160px;
     text-align: center;
     text-transform: uppercase;
   }
   .skill-bar {
-    background-color: $forest-900;
+    background-color: #07080b;
     border-radius: 15px;
     margin: 0 15px;
     @include flex-grow(1);
   }
   .bar {
-    background-color: $tan; // the track behind it is forest
+    background-color: $primary-color;
     border-radius: 10px;
     height: 8px;
     width: 0;
   }
   .skill-lavel {
-    border-left: 2px solid $forest-500;
+    border-left: 2px solid #2e333a;
     min-width: 70px;
     text-align: center;
     @include align-items(flex-end);
@@ -217,7 +217,7 @@
   }
 
   .overlay {
-    background-color: rgba($forest-700, 0.96);
+    background-color: rgba(#1e2530, 0.96);
     position: absolute;
     left: 0;
     top: 0;
@@ -247,7 +247,7 @@
   }
 
   h4 {
-    color: $tan; // sits on the dark hover overlay
+    color: $primary-color;
     font-weight: 700;
     text-transform: uppercase;
   }
@@ -273,13 +273,9 @@
 .history-block {
   background-color: $light-dark;
   position: relative;
-  // the accent rule under the heading is on forest here, not parchment
-  .section-title h3::after {
-    background-color: $tan;
-  }
   .section-title {
     background-color: $light-dark;
-    border-bottom: 1px solid $forest-600;
+    border-bottom: 1px solid #293342;
     left: 0;
     margin-bottom: 0;
     padding: 15px 34px 14px;
@@ -298,6 +294,37 @@
 // stray line across the top of the page
 .nicescroll-rails-hr {
   display: none !important;
+}
+
+// Dark-mode switch. Sits opposite the page-close X so it never collides with it.
+.theme-toggle {
+  background-color: transparent;
+  border: 1px solid rgba($light-dark, 0.25);
+  border-radius: 50%;
+  color: $light-dark;
+  cursor: pointer;
+  font-size: 17px;
+  height: 40px;
+  left: 30px;
+  line-height: 1;
+  padding: 0;
+  position: fixed;
+  top: 26px;
+  width: 40px;
+  z-index: 101;
+  @include transition(all 0.3s ease 0s);
+  &:hover,
+  &:focus {
+    background-color: $primary-color;
+    border-color: $primary-color;
+    color: $light;
+    outline: 0 none;
+  }
+}
+
+.dark .theme-toggle {
+  border-color: rgba($light, 0.3);
+  color: $light;
 }
 
 .history-scroller {
@@ -335,7 +362,7 @@
     text-transform: uppercase;
   }
   span {
-    color: $tan-dim;
+    color: #aaaaaa;
     font-size: 12px;
   }
 }
@@ -345,7 +372,7 @@
   position: relative;
   width: 66px;
   height: 38.11px;
-  background-color: $forest-600;
+  background-color: #293342;
   margin: 19.05px 0;
   &::before,
   &::after {
@@ -357,12 +384,12 @@
   }
   &::before {
     bottom: 100%;
-    border-bottom: 19.05px solid $forest-600;
+    border-bottom: 19.05px solid #293342;
   }
   &::after {
     top: 100%;
     width: 0;
-    border-top: 19.05px solid $forest-600;
+    border-top: 19.05px solid #293342;
   }
 }
 
@@ -379,7 +406,7 @@
   }
   .st0 {
     stroke: $light-dark;
-    fill: $light;
+    fill: #fff;
   }
   .st1 {
     fill: $light-dark;
@@ -446,7 +473,7 @@
     }
   }
   .text {
-    border: 1px solid $parchment-line;
+    border: 1px solid #cecece;
     font-size: 14px;
     font-style: italic;
     line-height: 24px;
@@ -651,7 +678,7 @@
   position: relative;
   width: 43px;
   height: 24.83px;
-  background-color: $forest-700;
+  background-color: #1e2530;
   margin: 12.41px 0;
   @include transition(all 0.3s ease 0s);
   &::before,
@@ -665,12 +692,12 @@
   }
   &::before {
     bottom: 100%;
-    border-bottom: 12.41px solid $forest-700;
+    border-bottom: 12.41px solid #1e2530;
   }
   &::after {
     top: 100%;
     width: 0;
-    border-top: 12.41px solid $forest-700;
+    border-top: 12.41px solid #1e2530;
   }
   &:hover {
     &::after {
@@ -692,7 +719,7 @@
       margin-left: 5px;
     }
     label.error {
-      color: #b4432f;
+      color: #ff0000;
       font-size: 13px;
       margin: 0;
     }
@@ -714,7 +741,7 @@
 
   .form-control {
     background-color: $light-dark;
-    color: $parchment-dim;
+    color: #bcbcbc;
     border: 0 none;
     border-radius: 3px;
     height: 48px;
@@ -723,7 +750,7 @@
     font-family: $open-sans;
     &:focus {
       box-shadow: none;
-      color: $light;
+      color: #fff;
     }
   }
 

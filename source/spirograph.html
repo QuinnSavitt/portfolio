@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Spirograph</title>
-  <link rel="icon" href="images/favicon.png?v=3" type="image/x-icon">
+  <link rel="icon" href="images/favicon.png?v=4" type="image/x-icon">
   <style>
     .qs-home {
       position: fixed;
@@ -14,20 +14,20 @@
       font-weight: 700;
       letter-spacing: 1.2px;
       text-transform: uppercase;
-      color: #e8dfcb;
-      background: rgba(27, 46, 33, 0.92);
-      border: 1px solid #325a3c;
+      color: #cfd6e4;
+      background: rgba(30, 37, 48, 0.92);
+      border: 1px solid #333f52;
       border-radius: 4px;
       padding: 8px 14px;
       text-decoration: none;
     }
-    .qs-home:hover { color: #f7f2e7; border-color: #c8a179; }
+    .qs-home:hover { color: #fff; border-color: #fa6862; }
   </style>
   <style>
     body {
       margin: 0;
-      background: #132018;
-      color: #f7f2e7;
+      background: #0d1117;
+      color: #fff;
       font-family: sans-serif;
       display: flex;
       flex-direction: column;
@@ -36,7 +36,7 @@
     }
 
     canvas {
-      background: #0d1711;
+      background: #111;
       margin-top: 10px;
     }
 
@@ -62,7 +62,7 @@
     button {
       margin-top: 10px;
       padding: 8px 16px;
-      background: #24402c;
+      background: #444;
       border: none;
       border-radius: 5px;
       color: white;
@@ -70,7 +70,7 @@
     }
 
     button:hover {
-      background: #c8a179;
+      background: #fa6862;
     }
   </style>
 </head>
@@ -137,9 +137,7 @@
       const drawX = centerX + x;
       const drawY = centerY + y;
 
-      // sweep gold through moss instead of the full rainbow, so the trace
-      // stays inside the site's palette
-      ctx.strokeStyle = `hsl(${36 + ((hue % 360) / 360) * 78}, 58%, 56%)`;
+      ctx.strokeStyle = `hsl(${hue}, 100%, 60%)`;
       ctx.lineWidth = 1;
       ctx.beginPath();
       if (lastX !== null && lastY !== null) {
