@@ -15,13 +15,25 @@ import { rng, hash32, hashCombine, daySeed } from "./daily.js";
 export const DS = 2;            // metres between centreline samples
 export const G = 9.81;
 
+/* Fastest the car will run on a stage, m/s. The gearing tops out here (see
+ * CAR.gears), so the speed profile and the player agree about what "flat out"
+ * means - a corner sized for this speed really is flat for everybody. */
+export const VCAP = 57;
+
+/* Usable lateral grip as a fraction of the tyre table's peak. The tyre never
+ * gives its whole peak in a steady corner: some of the friction circle is
+ * always spent holding speed against drag. Measured on a skidpad sweep at
+ * 0.91-0.92 of the table across every surface, so radii and the speed profile
+ * both derive from it and cannot drift apart. */
+export const LAT_USABLE = 0.92;
+
 /* ------------------------------------------------------------ environments */
 
 export const ENVS = [
   {
     id: "finland", name: "Finland", flag: "FI",
     surface: "Gravel", surfKey: "gravel",
-    radiusScale: 1.0, straightScale: 1.0,
+    straightScale: 1.0,
     avgSpeed: 26.5, baseHalfWidth: 3.8, hilliness: 14, terrAmp: 3.2,
     ditch: 0.32, snowbank: false, jumpLove: true, crestFreq: 0.5,
     dontcutP: 0.3, offCamberP: 0.1, villageP: 0,
@@ -35,7 +47,7 @@ export const ENVS = [
   {
     id: "wales", name: "Wales", flag: "GB",
     surface: "Gravel", surfKey: "gravel",
-    radiusScale: 0.82, straightScale: 0.78,
+    straightScale: 0.78,
     avgSpeed: 22.5, baseHalfWidth: 2.9, hilliness: 16, terrAmp: 4.0,
     ditch: 0.3, snowbank: false, jumpLove: false, crestFreq: 0.35,
     dontcutP: 0.4, offCamberP: 0.16, villageP: 0,
@@ -49,7 +61,7 @@ export const ENVS = [
   {
     id: "sweden", name: "Sweden", flag: "SE",
     surface: "Snow", surfKey: "snow",
-    radiusScale: 0.62, straightScale: 0.66,
+    straightScale: 0.66,
     avgSpeed: 23.5, baseHalfWidth: 3.3, hilliness: 10, terrAmp: 2.6,
     ditch: 0, snowbank: true, jumpLove: true, crestFreq: 0.4,
     dontcutP: 0.15, offCamberP: 0.06, villageP: 0,
@@ -63,7 +75,7 @@ export const ENVS = [
   {
     id: "monte", name: "Monte Carlo", flag: "MC",
     surface: "Tarmac", surfKey: "tarmac",
-    radiusScale: 0.88, straightScale: 0.85,
+    straightScale: 0.85,
     avgSpeed: 20.5, baseHalfWidth: 3.0, hilliness: 22, terrAmp: 5.5,
     ditch: 0, snowbank: false, jumpLove: false, crestFreq: 0.2,
     dontcutP: 0.35, offCamberP: 0.14, villageP: 0.25, barriers: true,
@@ -76,7 +88,7 @@ export const ENVS = [
   {
     id: "medit", name: "Mediterranean", flag: "GR",
     surface: "Tarmac", surfKey: "tarmac",
-    radiusScale: 0.85, straightScale: 0.85,
+    straightScale: 0.85,
     avgSpeed: 21.5, baseHalfWidth: 2.9, hilliness: 15, terrAmp: 4.2,
     ditch: 0, snowbank: false, jumpLove: false, crestFreq: 0.25,
     dontcutP: 0.35, offCamberP: 0.1, villageP: 0.5, walls: true,
@@ -89,7 +101,7 @@ export const ENVS = [
   {
     id: "desert", name: "Desert", flag: "MA",
     surface: "Loose gravel", surfKey: "dirt",
-    radiusScale: 1.12, straightScale: 1.12,
+    straightScale: 1.12,
     avgSpeed: 28.5, baseHalfWidth: 4.6, hilliness: 9, terrAmp: 3.0,
     ditch: 0, snowbank: false, jumpLove: true, crestFreq: 0.4,
     dontcutP: 0.2, offCamberP: 0.06, villageP: 0,
@@ -103,14 +115,21 @@ export const ENVS = [
 
 /* Grip tables. lat/long are peak friction coefficients; B controls how
  * sharply the tyre builds force, C how gently it falls off past the peak
- * (higher C = more forgiving slides). */
-const SURFACES = {
-  gravel:    { lat: 0.86, long: 0.88, B: 8.5,  C: 1.65, name: "Gravel" },
-  gravelWet: { lat: 0.74, long: 0.76, B: 7.5,  C: 1.7,  name: "Wet gravel" },
-  tarmac:    { lat: 1.12, long: 1.15, B: 12.5, C: 1.35, name: "Tarmac" },
-  tarmacWet: { lat: 0.9,  long: 0.92, B: 10.0, C: 1.45, name: "Wet tarmac" },
-  snow:      { lat: 0.5,  long: 0.5,  B: 6.0,  C: 1.85, name: "Snow" },
-  dirt:      { lat: 0.8,  long: 0.82, B: 8.0,  C: 1.65, name: "Loose gravel" },
+ * (higher C = more forgiving slides).
+ *
+ * These are gravel-rally-car numbers, not road-car ones: a works car on a
+ * loose surface pulls a shade over 1 g laterally, because the tyre digs a
+ * ridge of gravel to push against rather than relying on rubber alone. The
+ * old table sat around 0.8 g, which is a road car on a dirt lane - the car
+ * washed wide of every apex and the corner radii needed to be enormous
+ * before a fast corner could be taken flat. */
+export const SURFACES = {
+  gravel:    { lat: 1.05, long: 1.02, B: 8.5,  C: 1.65, name: "Gravel" },
+  gravelWet: { lat: 0.9,  long: 0.88, B: 7.5,  C: 1.7,  name: "Wet gravel" },
+  tarmac:    { lat: 1.34, long: 1.34, B: 12.5, C: 1.35, name: "Tarmac" },
+  tarmacWet: { lat: 1.08, long: 1.08, B: 10.0, C: 1.45, name: "Wet tarmac" },
+  snow:      { lat: 0.62, long: 0.6,  B: 6.0,  C: 1.85, name: "Snow" },
+  dirt:      { lat: 0.97, long: 0.95, B: 8.0,  C: 1.65, name: "Loose gravel" },
 };
 const OFFROAD = {
   finland: { lat: 0.6, long: 0.55, drag: 3.2, name: "grass" },
@@ -130,17 +149,79 @@ const WEATHER_INFO = {
   snowfall: { label: "Snowfall", wet: false, fog: 0.45 },
 };
 
-/* Corner severity bands: radius range (m) and total angle range (deg). */
-const SEV = {
-  1:  { r: [20, 30],   a: [70, 110] },
-  2:  { r: [32, 48],   a: [60, 100] },
-  3:  { r: [52, 75],   a: [50, 90] },
-  4:  { r: [78, 115],  a: [35, 70] },
-  5:  { r: [120, 175], a: [25, 50] },
-  6:  { r: [190, 320], a: [15, 38] },
-  hp: { r: [11, 15],   a: [150, 185] },
-  sq: { r: [16, 22],   a: [80, 100] },
+/* Corner severity bands.
+ *
+ * `vf` is the corner's speed as a fraction of the stage's free-running speed;
+ * `a` is the total turned angle in degrees. Radius is derived, not stored.
+ *
+ * A radius table cannot mean anything on its own. 190 m is a flat-out sweeper
+ * on dry tarmac and a third-gear corner on snow, and the old table then shrank
+ * every radius again per environment - so the low-grip stages got the tightest
+ * corners as well as the least grip, and a "flat" in Sweden came out at 96
+ * km/h against an approach of 200. Measured on the ladder rig, every severity
+ * from 6 down to square demanded the brake pedal: eight names for one input.
+ *
+ * Stating severity as a speed fraction names the input instead. Lifting off
+ * sheds somewhere between 6% and 15% by the apex depending on how early you
+ * do it, which is what puts the 5 and the 4 where they are; below that the
+ * brake pedal is the only way to make the number, and below the 1 the car has
+ * to be rotated as well as slowed. Radius follows from whatever grip the
+ * surface actually has:
+ *   R = v^2 / (mu * G)
+ * so the same word means the same job to the driver on snow and on tarmac.
+ * tools/rally-ladder.mjs drives one of each and checks it still does. */
+export const SEV = {
+  6:  { vf: [1.00, 1.06], a: [10, 22],   need: "flat" },
+  5:  { vf: [0.90, 0.98], a: [15, 30],   need: "lift" },
+  4:  { vf: [0.84, 0.92], a: [24, 44],   need: "lift" },
+  3:  { vf: [0.68, 0.78], a: [38, 65],   need: "brake" },
+  2:  { vf: [0.53, 0.63], a: [55, 90],   need: "brake" },
+  1:  { vf: [0.40, 0.49], a: [70, 110],  need: "brake" },
+  sq: { vf: [0.30, 0.36], a: [80, 100],  need: "handbrake" },
+  hp: { vf: [0.20, 0.26], a: [150, 185], need: "handbrake" },
 };
+
+/* Radius that makes `sev` need the input it is named for, given how fast the
+ * stage runs and how much grip the surface has.
+ *
+ * The flat corners are not simply the fast end of the same formula. A driver
+ * who never lifts is still asking the tyres for drive, and that drive comes
+ * out of the same friction circle as the cornering force - so a flat corner
+ * has to be sized for the grip that is LEFT once the engine has taken its
+ * share, and for the speed at the exit rather than the entry, because the car
+ * is accelerating the whole way round. On gravel the engine takes about a
+ * third of the circle; on snow it takes most of it, which is exactly why a
+ * genuinely flat snow corner has to be an enormous sweeper and why sizing one
+ * off steady-state grip produced "flat" notes that needed the brake pedal. */
+export function sevRadius(sev, vRef, grip, vfrac, minR) {
+  const band = SEV[sev];
+  const f = vfrac != null ? vfrac : (band.vf[0] + band.vf[1]) / 2;
+  const onPower = band.need === "flat";
+  const angle = (((band.a[0] + band.a[1]) / 2) * Math.PI) / 180;
+  /* Every other severity is measured against the pace of the stage it sits
+   * in. Flat is measured against the car's top speed instead, because "flat"
+   * is a promise that holds however fast the driver happens to arrive - size
+   * one for the stage's average pace and it stops being flat the moment it
+   * turns up at the end of a long straight, which is exactly where the fast
+   * corners live. */
+  const vEntry = (onPower ? VCAP : vRef) * f;
+  let v = vEntry, R = 0;
+  for (let it = 0; it < 3; it++) {
+    // longitudinal demand, m/s^2, of a driver who stays on the power
+    const acc = onPower ? Math.min(grip.long * G * 0.9, 195000 / (1230 * Math.max(8, v))) : 0;
+    const use = Math.min(0.95, acc / (grip.long * G));
+    const muLat = grip.lat * LAT_USABLE * Math.sqrt(Math.max(0.15, 1 - use * use));
+    R = (v * v) / (muLat * G);
+    if (!onPower) break;
+    // net of drag, the speed the car will actually be doing at the exit
+    v = Math.min(VCAP, Math.sqrt(vEntry * vEntry + 2 * Math.max(0, acc - 0.8) * R * angle));
+  }
+  /* On high-grip tarmac the hairpin formula asks for a 9 m radius, barely
+   * wider than the road itself: the inside edge all but closes and the car
+   * has to be threaded through rather than driven. Every corner stays enough
+   * wider than the road to still be a road. */
+  return Math.max(minR || 0, R);
+}
 
 /* --------------------------------------------------------- environment pick */
 
@@ -170,9 +251,29 @@ const ARCH = {
   technical: { straight: [22, 65],   sevs: [{ w: 2, s: 1 }, { w: 3, s: 2 }, { w: 3, s: 3 }, { w: 1, s: 4 }], sP: 0.12, chiP: 0.06, hpP: 0.22, sqP: 0.12 },
 };
 
-function buildPlan(r, env, targetLen) {
+/* The speed a stage in this environment really runs at: the car accelerating
+ * out of a medium corner down the longest straight the grammar can produce.
+ * Every corner radius is measured against it, so "flat" is flat at the speed
+ * the player is actually doing when they arrive rather than at some nominal
+ * top speed they never see. Uses the same power/drag model as speedProfile. */
+function refSpeed(env, grip) {
+  let longest = 0;
+  for (const k of Object.keys(ARCH)) longest = Math.max(longest, ARCH[k].straight[1]);
+  const len = longest * (env.straightScale || 1);
+  let v = 20;
+  for (let s = 0; s < len; s += DS) {
+    const drag = (0.36 * v * v) / 1230 + 0.012 * G;
+    const acc = Math.min(grip.long * G * 0.9, 195000 / (1230 * v)) - drag;
+    v = Math.sqrt(Math.max(1, v * v + 2 * Math.max(0.4, acc) * DS));
+  }
+  return Math.min(VCAP, v);
+}
+
+function buildPlan(r, env, grip, targetLen) {
   const ops = [];
   const arches = pickArchetypes(r, env);
+  const vRef = refSpeed(env, grip);
+  const minRadius = env.baseHalfWidth + 8;
   let s = 0;
   let dirBias = 0;          // cumulative signed turn, radians
   let lastDirs = [];        // recent corner directions
@@ -199,7 +300,7 @@ function buildPlan(r, env, targetLen) {
   function corner(sev, opts) {
     const band = SEV[sev];
     const dir = (opts && opts.dir) || pickDir();
-    const radius = r.range(band.r[0], band.r[1]) * (env.radiusScale || 1);
+    const radius = sevRadius(sev, vRef, grip, r.range(band.vf[0], band.vf[1]), minRadius);
     const angle = (r.range(band.a[0], band.a[1]) * Math.PI) / 180;
     const op = {
       t: "corner", dir, sev, radius, angle, mods: {},
@@ -208,9 +309,13 @@ function buildPlan(r, env, targetLen) {
     // modifiers
     if (typeof sev === "number") {
       const roll = r();
-      if (roll < 0.14 && sev >= 2) { op.mods.tightens = Math.max(1, sev - r.int(1, 2)); }
-      else if (roll < 0.24 && sev <= 5) { op.mods.opens = Math.min(6, sev + r.int(1, 2)); }
-      else if (roll < 0.34) { op.mods.long = true; op.angle *= r.range(1.35, 1.6); }
+      if (roll < 0.14 && sev >= 2) {
+        op.mods.tightens = Math.max(1, sev - r.int(1, 2));
+        op.mods.tightensR = sevRadius(op.mods.tightens, vRef, grip, null, minRadius);
+      } else if (roll < 0.24 && sev <= 5) {
+        op.mods.opens = Math.min(6, sev + r.int(1, 2));
+        op.mods.opensR = sevRadius(op.mods.opens, vRef, grip, null, minRadius);
+      } else if (roll < 0.34) { op.mods.long = true; op.angle *= r.range(1.35, 1.6); }
       if (sev <= 3 && r.chance(env.dontcutP)) op.mods.dontcut = true;
       else if (sev >= 3 && sev <= 5 && r.chance(0.18)) op.mods.cut = true;
       if (r.chance(env.offCamberP)) { op.camber = -r.range(0.035, 0.06); op.mods.offcamber = true; }
@@ -229,7 +334,7 @@ function buildPlan(r, env, targetLen) {
     if (op.t === "str") return op.len;
     if (op.t === "corner") {
       let len = op.radius * op.angle;
-      if (op.mods.tightens) len += SEV[op.mods.tightens].r[0] * 0.4;
+      if (op.mods.tightens) len += op.mods.tightensR * 0.4;
       return len + 40; // clothoid allowance
     }
     return 0;
@@ -346,7 +451,14 @@ function compile(plan, r, env) {
       }
     } else if (op.t === "corner") {
       const k1 = op.dir / op.radius;      // dir = 1: positive curvature (a screen-right corner)
-      const Lc = Math.min(40, Math.max(8, op.radius * 0.45));
+      /* Entry/exit easing. A fast sweeper needs a long one - the tyres build
+       * cornering force over a length of travel, so a 300 m radius arriving
+       * as a step change washes the car straight to the outside edge no
+       * matter how gently it is being driven, and the 40 m ceiling this
+       * replaces made every fast corner behave like that. Bounded by a share
+       * of the corner's own angle so the two ramps cannot turn the car more
+       * than the corner was asked for. */
+      const Lc = Math.min(90, Math.max(8, Math.min(op.radius * 0.5, op.radius * op.angle * 0.42)));
       // cross-slope tan, dy per metre toward +d. Helpful banking = outside
       // edge high: the outside of a dir=1 corner is the -d side, so negative.
       const camber = -op.dir * op.camber;
@@ -359,8 +471,7 @@ function compile(plan, r, env) {
       let arcAngle = Math.max(0.06, op.angle - rampAngle);
 
       if (op.mods.tightens) {
-        const band2 = SEV[op.mods.tightens];
-        const r2 = (band2.r[0] + band2.r[1]) / 2;
+        const r2 = op.mods.tightensR;
         const k2 = op.dir / r2;
         const a1 = arcAngle * 0.5, a2 = arcAngle * 0.5;
         emit((a1 / Math.abs(k1)), () => ({ k: k1, c: camber }));
@@ -368,8 +479,7 @@ function compile(plan, r, env) {
         emit((a2 / Math.abs(k2)), () => ({ k: k2, c: camber }));
         emit(Lc, (t) => ({ k: k2 * (1 - t), c: camber * (1 - t) }));
       } else if (op.mods.opens) {
-        const band2 = SEV[op.mods.opens];
-        const r2 = (band2.r[0] + band2.r[1]) / 2;
+        const r2 = op.mods.opensR;
         const k2 = op.dir / r2;
         const a1 = arcAngle * 0.55, a2 = arcAngle * 0.45;
         emit((a1 / Math.abs(k1)), () => ({ k: k1, c: camber }));
@@ -752,13 +862,11 @@ export function speedProfile(stage) {
   const n = stage.geo.n;
   const grip = stage.grip;
   const vmax = new Float64Array(n);
-  const VCAP = 57;
   for (let i = 0; i < n; i++) {
     const k = Math.abs(stage.curvArr[i]);
     // positive when the banking helps the corner (outside edge high)
     const bankHelp = -stage.cambArr[i] * Math.sign(stage.curvArr[i] || 1);
-    // 0.92: the real car's usable lateral grip vs the tyre table (skidpad-measured)
-    const mu = grip.lat * 0.92 * (1 + Math.max(-0.35, Math.min(0.35, bankHelp * 5)));
+    const mu = grip.lat * LAT_USABLE * (1 + Math.max(-0.35, Math.min(0.35, bankHelp * 5)));
     vmax[i] = k > 1e-5 ? Math.min(VCAP, Math.sqrt((mu * G) / k)) : VCAP;
   }
   // no braking while airborne: jumps and sharp crests carry the entry speed
@@ -1147,9 +1255,9 @@ function qualityScore(stage) {
 
 /* ------------------------------------------------------------ stage builder */
 
-function generateCandidate(seed, env, targetLen) {
+function generateCandidate(seed, env, grip, targetLen) {
   const r = rng(seed);
-  const plan = buildPlan(r, env, targetLen);
+  const plan = buildPlan(r, env, grip, targetLen);
   const comp = compile(plan, r, env);
   const geo = integrate(comp, r, env, seed);
 
@@ -1196,7 +1304,7 @@ export function generateStage(day, opts) {
     let stage = null;
     let targetLen = 58 * env.avgSpeed * (grip.lat / SURFACES[env.surfKey].lat);
     for (let pass = 0; pass < 2; pass++) {
-      stage = generateCandidate(seed, env, targetLen);
+      stage = generateCandidate(seed, env, grip, targetLen);
       stage.grip = grip;
       stage.profile = speedProfile(stage);
       const est = stage.profile.time * 1.045;
