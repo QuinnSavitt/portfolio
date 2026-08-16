@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Daily Rocket</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="description" content="Build it. Launch it. Fly it. Land it. A new rocket engineering puzzle every day.">
+<meta name="description" content="One rocket, one landing pad, one day. Pick your engine and fuel, thread the beacons, land it soft. Same challenge for everyone, every day.">
 <meta name="theme-color" content="#12171f">
 <link rel="icon" href="../../images/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800">
@@ -19,6 +19,7 @@
   --dim: #8b97ab;
   --white: #fff;
   --good: #7fc6a1;
+  --amber: #f0c86e;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body {
@@ -28,9 +29,9 @@ html, body {
   overscroll-behavior: none; touch-action: manipulation;
 }
 button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
-h1, h2, h3, h4 { margin: 0; font-weight: 800; color: var(--white); letter-spacing: .5px; }
+h1, h2, h3 { margin: 0; font-weight: 800; color: var(--white); letter-spacing: .5px; }
 
-#app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+#app { position: fixed; inset: 0; }
 .screen { position: absolute; inset: 0; display: none; flex-direction: column; }
 .screen.on { display: flex; }
 
@@ -46,47 +47,23 @@ h1, h2, h3, h4 { margin: 0; font-weight: 800; color: var(--white); letter-spacin
 .topbar .spacer { flex: 1; }
 .iconbtn {
   width: 34px; height: 34px; border-radius: 3px; border: 1px solid var(--line);
-  color: var(--dim); font-size: 15px; line-height: 1;
+  color: var(--dim); font-size: 15px; line-height: 1; flex: 0 0 auto;
 }
 .iconbtn:hover { color: var(--white); border-color: var(--accent); }
 
 .btn {
   display: inline-block; border: 1px solid var(--line); border-radius: 3px;
-  padding: 0 18px; line-height: 40px; font-size: 12px; font-weight: 700;
+  padding: 0 18px; line-height: 42px; font-size: 12px; font-weight: 700;
   letter-spacing: 1.2px; text-transform: uppercase; color: var(--white);
   background: var(--panel-2); text-align: center; text-decoration: none;
 }
 .btn:active { transform: translateY(1px); }
 .btn.primary { background: var(--accent); border-color: var(--accent); }
 .btn.ghost { background: transparent; color: var(--dim); }
-.btn[disabled] { opacity: .4; pointer-events: none; }
-.btn.wide { display: block; width: 100%; }
 
 .scroll { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .pad { padding: 16px; }
-
-/* -------------------------------------------------------------- mission */
-.mission-hero { padding: 22px 18px 10px; }
-.mission-hero .kicker { font-size: 11px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
-.mission-hero h2 { font-size: 30px; text-transform: uppercase; margin: 6px 0 8px; line-height: 1.05; }
-.mission-hero p { margin: 0; font-size: 14px; line-height: 22px; color: var(--dim); }
-
-.facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); margin: 18px 0; border: 1px solid var(--line); }
-.fact { background: var(--panel); padding: 11px 13px; }
-.fact .k { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); }
-.fact .v { font-size: 17px; font-weight: 700; color: var(--white); margin-top: 2px; }
-
-.objlist { list-style: none; margin: 0; padding: 0; }
-.objlist li { font-size: 13px; padding: 7px 0 7px 22px; position: relative; border-bottom: 1px solid var(--line); }
-.objlist li:before { content: "◇"; position: absolute; left: 2px; color: var(--accent); }
-.objlist li.met:before { content: "◆"; color: var(--good); }
-
 .sectionhead { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--dim); margin: 20px 0 8px; }
-
-.recordrow { display: flex; gap: 10px; }
-.recordrow .rec { flex: 1; background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; }
-.recordrow .rec .k { font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--dim); }
-.recordrow .rec .v { font-size: 20px; font-weight: 800; color: var(--white); }
 
 .footbar {
   flex: 0 0 auto; padding: 12px 14px max(12px, env(safe-area-inset-bottom));
@@ -94,73 +71,114 @@ h1, h2, h3, h4 { margin: 0; font-weight: 800; color: var(--white); letter-spacin
 }
 .footbar .btn { flex: 1; }
 
-/* -------------------------------------------------------------- builder */
-#buildWrap { flex: 1 1 auto; position: relative; min-height: 0; }
-#buildCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-.readout {
-  position: absolute; left: 10px; top: 10px; right: 10px;
-  display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none;
-}
-.chip {
-  background: rgba(18,23,31,.86); border: 1px solid var(--line); border-radius: 2px;
-  padding: 4px 8px; font-size: 11px; letter-spacing: .6px;
-}
-.chip b { color: var(--white); font-weight: 700; }
-.chip.warn { border-color: var(--accent); color: #ffb3b0; }
-.buildtools { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+/* -------------------------------------------------------------- mission */
+.mission-hero { padding: 22px 18px 6px; }
+.mission-hero .kicker { font-size: 11px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+.mission-hero h2 { font-size: 30px; text-transform: uppercase; margin: 6px 0 8px; line-height: 1.05; }
+.mission-hero p { margin: 0; font-size: 14px; line-height: 22px; color: var(--dim); }
 
-.palette {
-  flex: 0 0 auto; background: var(--panel); border-top: 1px solid var(--line);
-  padding: 8px 8px 4px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch;
+.practice {
+  display: none; margin: 12px 18px 0; padding: 9px 12px; font-size: 12px;
+  border: 1px solid var(--amber); color: var(--amber); border-radius: 3px;
 }
-.part {
-  display: inline-block; vertical-align: top; width: 82px; margin-right: 6px;
-  background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px;
-  padding: 7px 6px; text-align: center; white-space: normal;
+
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); margin: 16px 0; border: 1px solid var(--line); }
+.fact { background: var(--panel); padding: 10px 12px; }
+.fact .k { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); }
+.fact .v { font-size: 16px; font-weight: 700; color: var(--white); margin-top: 2px; }
+
+/* -------------------------------------------------------------- loadout */
+.engines { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.engine {
+  text-align: left; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 3px; padding: 10px 11px; display: flex; flex-direction: column; gap: 3px;
 }
-.part.sel { border-color: var(--accent); background: #33404f; }
-.part.out { opacity: .32; pointer-events: none; }
-.part .nm { font-size: 10px; font-weight: 700; color: var(--white); line-height: 13px; height: 26px; overflow: hidden; }
-.part .ct { font-size: 10px; color: var(--accent); font-weight: 700; }
-.part .st { font-size: 9px; color: var(--dim); line-height: 12px; }
+.engine.sel { border-color: var(--accent); background: #2d3341; box-shadow: inset 0 0 0 1px var(--accent); }
+.engine .nm { font-size: 13px; font-weight: 800; color: var(--white); text-transform: uppercase; letter-spacing: .8px; }
+.engine .st { font-size: 10.5px; color: var(--accent); font-weight: 700; }
+.engine .bl { font-size: 11px; color: var(--dim); line-height: 15px; }
+
+.fuelrow { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+.fuelrow .lbl { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); flex: 0 0 auto; }
+.fuelrow .pct { font-size: 16px; font-weight: 800; color: var(--white); width: 52px; text-align: right; }
+input[type=range] { flex: 1; appearance: none; -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--line); outline: none; }
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); border: 3px solid #1e2530; cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%; background: var(--accent);
+  border: 3px solid #1e2530; cursor: pointer;
+}
+
+.loadstats { display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 12px; }
+.loadstats .cell { flex: 1; background: var(--panel); padding: 8px 10px; }
+.loadstats .k { font-size: 9.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); }
+.loadstats .v { font-size: 15px; font-weight: 800; color: var(--white); }
+.loadstats .v.warn { color: var(--amber); }
+.loadstats .v.bad { color: var(--accent); }
+.loadwarn { display: none; margin-top: 10px; padding: 8px 11px; font-size: 12px; line-height: 18px; border: 1px solid var(--accent); color: #ffb3b0; border-radius: 3px; }
+
+.recordrow { display: flex; gap: 10px; }
+.recordrow .rec { flex: 1; background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; }
+.recordrow .rec .k { font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--dim); }
+.recordrow .rec .v { font-size: 20px; font-weight: 800; color: var(--white); }
+.streak { font-size: 11px; color: var(--good); letter-spacing: 1px; text-transform: uppercase; margin-top: 6px; min-height: 15px; }
+
+.helpbox { background: var(--panel); border: 1px solid var(--line); padding: 12px 14px; font-size: 12px; line-height: 20px; color: var(--dim); }
+.helpbox b { color: var(--white); }
+.kbd { display: inline-block; border: 1px solid var(--line); border-radius: 2px; padding: 0 5px; font-size: 11px; color: var(--white); background: var(--panel-2); }
 
 /* --------------------------------------------------------------- flight */
 #flyWrap { position: absolute; inset: 0; }
 #flyCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
-.hud { position: absolute; left: 0; right: 0; top: 0; padding: max(8px, env(safe-area-inset-top)) 10px 0; pointer-events: none; }
-.hud .row { display: flex; gap: 6px; flex-wrap: wrap; }
-.tel { background: rgba(18,23,31,.8); border: 1px solid var(--line); padding: 3px 7px; font-size: 11px; }
+.hud {
+  position: absolute; left: 0; right: 0; top: 0;
+  padding: max(8px, env(safe-area-inset-top)) 10px 0;
+  display: flex; gap: 6px; align-items: flex-start; pointer-events: none;
+}
+.hud .cluster { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.tel { background: rgba(18,23,31,.78); border: 1px solid var(--line); border-radius: 2px; padding: 3px 8px; }
 .tel .k { color: var(--dim); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; display: block; }
-.tel .v { color: var(--white); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
+.tel .v { color: var(--white); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; font-style: normal; }
+.tel.warn .v { color: var(--amber); }
 .tel.alert .v { color: var(--accent); }
+.fuelbar { width: 92px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.14); margin-top: 4px; overflow: hidden; }
+.fuelbar .fill { height: 100%; background: var(--good); border-radius: 3px; }
+.fuelbar .fill.low { background: var(--accent); }
+.flybtns { display: flex; gap: 6px; pointer-events: auto; }
 
-.controls { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 10px max(10px, env(safe-area-inset-bottom)); }
-.controls .bank { display: flex; align-items: flex-end; gap: 10px; }
-.rotpad { display: flex; gap: 8px; }
-.bigbtn {
-  width: 62px; height: 62px; border-radius: 4px; background: rgba(41,51,66,.85);
-  border: 1px solid var(--line); color: var(--white); font-size: 22px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center; user-select: none;
+#botChip {
+  display: none; position: absolute; top: 40%; left: 50%; transform: translateX(-50%);
+  background: rgba(250,104,98,.14); border: 1px solid var(--accent); color: var(--accent);
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 5px 14px; border-radius: 2px;
 }
-.bigbtn:active, .bigbtn.down { background: var(--accent); border-color: var(--accent); }
-.bigbtn.small { width: 52px; height: 44px; font-size: 10px; letter-spacing: 1px; }
-.bigbtn[disabled] { opacity: .3; }
-.throttle {
-  width: 62px; height: 150px; background: rgba(41,51,66,.85); border: 1px solid var(--line);
-  border-radius: 4px; position: relative; overflow: hidden; touch-action: none;
+
+.controls {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 0 12px max(12px, env(safe-area-inset-bottom));
+  display: flex; align-items: flex-end; justify-content: space-between; pointer-events: none;
 }
-.throttle .fill { position: absolute; left: 0; right: 0; bottom: 0; background: var(--accent); opacity: .8; }
-.throttle .lbl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 800; color: var(--white); text-shadow: 0 1px 3px #000; }
-.controls .stack { display: flex; flex-direction: column; gap: 8px; }
-.spring { flex: 1; }
+.controls .group { display: flex; gap: 10px; align-items: flex-end; pointer-events: auto; }
+.padbtn {
+  width: 64px; height: 64px; border-radius: 6px; background: rgba(41,51,66,.82);
+  border: 1px solid var(--line); color: var(--white); font-size: 24px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none;
+}
+.padbtn:active, .padbtn.down { background: var(--accent); border-color: var(--accent); }
+.padbtn.burn { width: 84px; height: 84px; font-size: 13px; letter-spacing: 1.5px; background: rgba(250,104,98,.28); border-color: rgba(250,104,98,.55); }
+.padbtn.burn.down, .padbtn.burn:active { background: var(--accent); }
+.padbtn.ease { height: 56px; width: 84px; font-size: 11px; letter-spacing: 1.5px; }
 
 /* -------------------------------------------------------------- results */
-.result { max-width: 460px; margin: 0 auto; width: 100%; }
-.bigscore { font-size: 46px; font-weight: 800; color: var(--white); line-height: 1; font-variant-numeric: tabular-nums; }
-.verdict { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+.result { max-width: 460px; margin: 0 auto; width: 100%; text-align: left; }
+.medalrow { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.medalrow .emoji { font-size: 40px; line-height: 1; }
+.bigscore { font-size: 52px; font-weight: 800; color: var(--white); line-height: 1; font-variant-numeric: tabular-nums; }
+.verdict { font-size: 13px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--accent); margin-top: 8px; line-height: 20px; }
 .verdict.ok { color: var(--good); }
+.note { font-size: 12px; color: var(--dim); line-height: 19px; margin-top: 6px; min-height: 16px; }
 .breakdown { margin: 16px 0; border: 1px solid var(--line); }
 .breakdown .ln { display: flex; align-items: baseline; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 13px; }
 .breakdown .ln:last-child { border-bottom: 0; }
@@ -169,24 +187,25 @@ h1, h2, h3, h4 { margin: 0; font-weight: 800; color: var(--white); letter-spacin
 .breakdown .ln .vl { font-weight: 700; color: var(--white); font-variant-numeric: tabular-nums; }
 .breakdown .tot { background: var(--panel-2); }
 .breakdown .tot .vl { color: var(--accent); font-size: 17px; }
-.note { font-size: 12px; color: var(--dim); line-height: 19px; }
 
 .toast {
-  position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+  position: fixed; left: 50%; bottom: 118px; transform: translateX(-50%);
   background: var(--panel-2); border: 1px solid var(--accent); color: var(--white);
   padding: 8px 16px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
-  opacity: 0; transition: opacity .25s ease; pointer-events: none; z-index: 50;
+  opacity: 0; transition: opacity .25s ease; pointer-events: none; z-index: 50; white-space: nowrap;
 }
 .toast.on { opacity: 1; }
 
-.helpbox { background: var(--panel); border: 1px solid var(--line); padding: 12px 14px; font-size: 12px; line-height: 20px; color: var(--dim); }
-.helpbox b { color: var(--white); }
-.kbd { display: inline-block; border: 1px solid var(--line); border-radius: 2px; padding: 0 5px; font-size: 11px; color: var(--white); background: var(--panel-2); }
+.clock { font-size: 26px; font-weight: 800; color: var(--white); font-variant-numeric: tabular-nums; }
 
+@media (max-width: 560px) {
+  .engines { grid-template-columns: 1fr; }
+  .facts { grid-template-columns: repeat(2, 1fr); }
+  .mission-hero h2 { font-size: 26px; }
+}
 @media (min-width: 780px) {
-  .mission-hero h2 { font-size: 40px; }
-  .facts { grid-template-columns: repeat(4, 1fr); }
-  .scroll .pad { max-width: 720px; margin: 0 auto; }
+  .scroll .pad, .mission-hero, .practice { max-width: 720px; margin-left: auto; margin-right: auto; }
+  .mission-hero { padding-top: 30px; }
 }
 </style>
 </head>
@@ -206,75 +225,66 @@ h1, h2, h3, h4 { margin: 0; font-weight: 800; color: var(--white); letter-spacin
     </div>
 
     <div class="scroll">
+      <div class="practice" id="practiceNote"></div>
       <div class="mission-hero">
-        <div class="kicker" id="briefKicker">Mission</div>
-        <h2 id="briefName">—</h2>
-        <p id="briefBrief">—</p>
+        <div class="kicker">Today's mission</div>
+        <h2 id="missionName">—</h2>
+        <p id="missionBrief">—</p>
       </div>
       <div class="pad" style="padding-top:0">
-        <div class="facts" id="briefFacts"></div>
+        <div class="facts" id="factGrid"></div>
 
-        <div class="sectionhead">Optional objectives</div>
-        <ul class="objlist" id="briefObjectives"></ul>
+        <div class="sectionhead">Loadout — engine</div>
+        <div class="engines" id="engineCards"></div>
+
+        <div class="fuelrow">
+          <span class="lbl">Fuel</span>
+          <input type="range" id="fuelRange" min="30" max="100" step="5" value="70">
+          <span class="pct" id="fuelPct">70%</span>
+        </div>
+        <div class="loadstats">
+          <div class="cell"><div class="k">Fuel</div><div class="v" id="loadFuel">—</div></div>
+          <div class="cell"><div class="k">Mass</div><div class="v" id="loadMass">—</div></div>
+          <div class="cell"><div class="k">TWR</div><div class="v" id="loadTWR">—</div></div>
+          <div class="cell"><div class="k">Δv</div><div class="v" id="loadDv">—</div></div>
+        </div>
+        <div class="loadwarn" id="loadWarn"></div>
 
         <div class="sectionhead">Your day</div>
         <div class="recordrow">
           <div class="rec"><div class="k">Blind run</div><div class="v" id="recFirst">—</div></div>
-          <div class="rec"><div class="k">Personal best</div><div class="v" id="recBest">—</div></div>
+          <div class="rec"><div class="k">Best</div><div class="v" id="recBest">—</div></div>
           <div class="rec"><div class="k">Attempts</div><div class="v" id="recAttempts">0</div></div>
         </div>
+        <div class="streak" id="streakChip"></div>
 
         <div class="sectionhead">Next rocket in</div>
-        <div class="bigscore" id="resetClock" style="font-size:26px">--:--:--</div>
+        <div class="clock" id="resetClock">--:--:--</div>
 
         <div id="helpPanel" style="display:none;margin-top:18px">
           <div class="helpbox">
-            <b>Build</b> a rocket from today's parts bin, then fly it to the pad and land under
-            the touchdown limit.<br><br>
-            <b>Flight:</b> <span class="kbd">A</span>/<span class="kbd">D</span> rotate,
-            <span class="kbd">W</span>/<span class="kbd">S</span> throttle,
-            <span class="kbd">Space</span> stage, <span class="kbd">E</span> chute,
-            <span class="kbd">R</span> restart.<br><br>
-            Everyone in the world gets this same rocket problem today. Fins keep you stable in
-            atmosphere and do nothing in vacuum. Fuel is mass — carrying spare costs you points.
+            <b>The job:</b> launch, sweep the three beacons, and land on the pad —
+            under 5&nbsp;m/s down, 3&nbsp;m/s across, near upright. Everyone in the
+            world flies this exact mission today.<br><br>
+            <b>Fly:</b> <span class="kbd">A</span>/<span class="kbd">D</span> or
+            <span class="kbd">←</span>/<span class="kbd">→</span> tilt ·
+            <span class="kbd">W</span>/<span class="kbd">Space</span> burn ·
+            <span class="kbd">S</span> ease (auto-hover throttle, gently sinks) ·
+            <span class="kbd">R</span> restart · <span class="kbd">M</span> sound.<br><br>
+            <b>Loadout:</b> fuel is mass. A lean rocket flies quicker and scores
+            harder, but runs dry sooner. TWR under 1.0 will not lift off.
+            Touching down off the pad is safe if you are slow — relight and hop on.<br><br>
+            <b>Scoring:</b> touchdown 2000 · softness 1500 · accuracy 1500 ·
+            beacons 3×800 · time 1500 · fuel economy 1100. Medals at
+            6000&nbsp;🥈, 8000&nbsp;🥇, 9300&nbsp;💎. The first completed attempt is
+            your <b>blind run</b> — it stays on the record.
           </div>
         </div>
       </div>
     </div>
 
     <div class="footbar">
-      <button class="btn primary" id="btnBuild">Build Rocket</button>
-    </div>
-  </section>
-
-  <!-- ========================================================== builder -->
-  <section class="screen" id="screen-build">
-    <div class="topbar">
-      <button class="iconbtn" id="btnBackBrief">←</button>
-      <div>
-        <div class="num">Assembly</div>
-        <h1 id="buildTitle">Build</h1>
-      </div>
-      <div class="spacer"></div>
-      <button class="iconbtn" id="btnUndo" title="Undo">↶</button>
-      <button class="iconbtn" id="btnRedo" title="Redo">↷</button>
-      <button class="iconbtn" id="btnReset" title="Reset">⟲</button>
-    </div>
-
-    <div id="buildWrap">
-      <canvas id="buildCanvas"></canvas>
-      <div class="readout" id="buildReadout"></div>
-      <div class="buildtools">
-        <button class="iconbtn" id="btnZoomIn">+</button>
-        <button class="iconbtn" id="btnZoomOut">−</button>
-      </div>
-    </div>
-
-    <div class="palette" id="palette"></div>
-
-    <div class="footbar">
-      <button class="btn ghost" id="btnBuildHelp" style="flex:0 0 auto">?</button>
-      <button class="btn primary" id="btnLaunch">Launch</button>
+      <button class="btn primary" id="btnLaunch" style="flex:1">Launch</button>
     </div>
   </section>
 
@@ -284,24 +294,33 @@ h1, h2, h3, h4 { margin: 0; font-weight: 800; color: var(--white); letter-spacin
       <canvas id="flyCanvas"></canvas>
 
       <div class="hud">
-        <div class="row" id="hudRow"></div>
+        <div class="cluster">
+          <div class="tel"><span class="k">Alt</span><b class="v" id="hudAlt">0 m</b></div>
+          <div class="tel"><span class="k">V↑</span><b class="v" id="hudVy">0.0</b></div>
+          <div class="tel"><span class="k">V→</span><b class="v" id="hudVx">0.0</b></div>
+          <div class="tel"><span class="k">Fuel</span><div class="fuelbar"><div class="fill" id="hudFuelFill" style="width:100%"></div></div></div>
+          <div class="tel"><span class="k">Wind</span><b class="v" id="hudWind">—</b></div>
+          <div class="tel"><span class="k">Beacons</span><b class="v" id="hudBeacons">0/3</b></div>
+          <div class="tel"><span class="k">Pad</span><b class="v" id="hudPad">—</b></div>
+          <div class="tel"><span class="k">T+</span><b class="v" id="hudTime">0s</b></div>
+        </div>
+        <div class="flybtns">
+          <button class="iconbtn" id="btnMute" title="Sound">🔊</button>
+          <button class="iconbtn" id="btnRestart" title="Restart (R)">↺</button>
+          <button class="iconbtn" id="btnQuit" title="Back to briefing (Esc)">✕</button>
+        </div>
       </div>
 
+      <div id="botChip">Autopilot</div>
+
       <div class="controls">
-        <div class="bank">
-          <div class="rotpad">
-            <button class="bigbtn" id="btnLeft">↺</button>
-            <button class="bigbtn" id="btnRight">↻</button>
-          </div>
-          <div class="spring"></div>
-          <div class="stack">
-            <button class="bigbtn small" id="btnAction">CHUTE</button>
-            <button class="bigbtn small" id="btnStage">STAGE</button>
-          </div>
-          <div class="throttle" id="throttle">
-            <div class="fill" id="throttleFill" style="height:0%"></div>
-            <div class="lbl" id="throttleLbl">0%</div>
-          </div>
+        <div class="group">
+          <button class="padbtn" id="btnRotL">↶</button>
+          <button class="padbtn" id="btnRotR">↷</button>
+        </div>
+        <div class="group">
+          <button class="padbtn ease" id="btnEase">EASE</button>
+          <button class="padbtn burn" id="btnBurn">BURN</button>
         </div>
       </div>
     </div>
@@ -321,42 +340,37 @@ h1, h2, h3, h4 { margin: 0; font-weight: 800; color: var(--white); letter-spacin
     <div class="scroll">
       <div class="pad">
         <div class="result">
+          <div class="medalrow">
+            <span class="emoji" id="resMedal"></span>
+            <span class="bigscore" id="resScore">0</span>
+          </div>
           <div class="verdict" id="resVerdict">—</div>
-          <div class="bigscore" id="resScore">0</div>
           <div class="note" id="resNote"></div>
 
           <div class="breakdown" id="resBreakdown"></div>
 
-          <div class="sectionhead">Objectives</div>
-          <ul class="objlist" id="resObjectives"></ul>
-
           <div class="sectionhead">Your day</div>
           <div class="recordrow">
             <div class="rec"><div class="k">Blind run</div><div class="v" id="resFirst">—</div></div>
-            <div class="rec"><div class="k">Personal best</div><div class="v" id="resBest">—</div></div>
+            <div class="rec"><div class="k">Best</div><div class="v" id="resBest">—</div></div>
             <div class="rec"><div class="k">Attempts</div><div class="v" id="resAttempts">0</div></div>
           </div>
 
           <div style="height:14px"></div>
-          <button class="btn wide ghost" id="btnShare">Share result</button>
+          <button class="btn ghost" id="btnShare" style="display:block;width:100%">Share result</button>
         </div>
       </div>
     </div>
 
     <div class="footbar">
-      <button class="btn" id="btnEdit">Edit Rocket</button>
-      <button class="btn primary" id="btnAgain">Fly Again</button>
+      <button class="btn" id="btnLoadout">Loadout</button>
+      <button class="btn primary" id="btnAgain">Fly Again (R)</button>
     </div>
   </section>
 
   <div class="toast" id="toast"></div>
 </div>
 
-<script src="daily.js"></script>
-<script src="parts.js"></script>
-<script src="flight.js"></script>
-<script src="score.js"></script>
-<script src="build.js"></script>
-<script src="main.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -17,7 +17,7 @@
         {
             id: "rocket",
             title: "Daily Rocket",
-            tagline: "Build a rocket from today's parts bin, fly it downrange and land it on the pad. Same puzzle for everyone, every day.",
+            tagline: "Pick an engine, load your fuel, sweep the beacons and land it on the pad. Same rocket, same sky, everyone, every day.",
             icon: "tf-hotairballoon",
             url: "games/rocket/index.html",
             daily: true,
