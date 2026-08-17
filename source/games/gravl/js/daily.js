@@ -6,7 +6,11 @@
  * beyond the calendar date.
  */
 
-export const EPOCH = Date.UTC(2026, 0, 1); // Gravl #1 (shared daily-games epoch)
+/* Gravl #1 = 2026-08-17, the day of the rebrand — numbering restarted from 1
+ * (the Daily Rally era used the shared 2026-01-01 epoch that Daily Rocket
+ * still uses). Records live under a fresh key namespace for the same reason:
+ * old day indices must never collide with new ones. */
+export const EPOCH = Date.UTC(2026, 7, 17);
 const DAY_MS = 86400000;
 
 export function hash32(n) {

@@ -56,9 +56,9 @@ function botDrive(st, skill, maxSeconds) {
 const startDay = dayIndex();
 
 if (mode === "all" || mode === "gen") {
-  console.log(`=== stage generation sweep (days ${startDay - 10}..${startDay + 50}) ===`);
+  console.log(`=== stage generation sweep (days ${Math.max(0, startDay - 10)}..${startDay + 50}) ===`);
   let bad = 0;
-  for (let day = startDay - 10; day <= startDay + 50; day++) {
+  for (let day = Math.max(0, startDay - 10); day <= startDay + 50; day++) {
     const st = loadStage(day);
     const problems = [];
     if (st.issues) problems.push("FALLBACK:" + st.issues.join("/"));

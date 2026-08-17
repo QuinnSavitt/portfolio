@@ -26,7 +26,7 @@ function readJSON(key, fallback) {
 /* ------------------------------------------------------------ day records */
 
 export function getDayRecord(day) {
-  return readJSON("day-" + day, {
+  return readJSON("d2-" + day, {
     blind: null,          // first completed run
     best: null,           // fastest run
     attempts: 0,
@@ -37,7 +37,7 @@ export function getDayRecord(day) {
 }
 
 export function saveDayRecord(day, rec) {
-  write("day-" + day, JSON.stringify(rec));
+  write("d2-" + day, JSON.stringify(rec));
 }
 
 /* Record a completed run; returns flags about what it achieved. */
