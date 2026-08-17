@@ -1,4 +1,4 @@
-/* Daily Rally — procedural stage generation.
+/* Gravl — procedural stage generation.
  *
  * A stage is compiled from a plan of road "ops" (straights, corners, chicanes)
  * chosen by per-environment grammars, then integrated into a sampled centerline

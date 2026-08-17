@@ -1,4 +1,4 @@
-/* Daily Rally — deterministic daily seed plumbing.
+/* Gravl — deterministic daily seed plumbing.
  *
  * Every player worldwide derives today's stage from one integer: the UTC
  * day index. Same day -> same seed -> same road, car, weather, physics.
@@ -6,7 +6,7 @@
  * beyond the calendar date.
  */
 
-export const EPOCH = Date.UTC(2026, 0, 1); // Daily Rally #1
+export const EPOCH = Date.UTC(2026, 0, 1); // Gravl #1 (shared daily-games epoch)
 const DAY_MS = 86400000;
 
 export function hash32(n) {

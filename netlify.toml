@@ -2,6 +2,12 @@
 publish = "theme"
 command = "npm run build"
 
+# Daily Rally became Gravl (2026-08); keep old links and bookmarks working.
+[[redirects]]
+from = "/games/rally/*"
+to = "/games/gravl/:splat"
+status = 301
+
 [[headers]]
 for = "/*" # This defines which paths this specific [[headers]] block will cover.
 

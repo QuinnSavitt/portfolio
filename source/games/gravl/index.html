@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Daily Rally</title>
+<title>Gravl</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="One car. One road. One day. Fastest time wins. A new procedurally generated rally stage every day, in your browser.">
 <meta name="theme-color" content="#12171f">
@@ -187,7 +187,7 @@ a.back-link:hover { color: var(--white); }
     var el = document.getElementById("errBanner");
     if (!el) return;
     el.style.display = "block";
-    el.textContent = "Daily Rally hit an error (v" + window.__DR_VERSION + ") — try a hard refresh (Ctrl+Shift+R).\n" + msg;
+    el.textContent = "Gravl hit an error (v" + window.__DR_VERSION + ") — try a hard refresh (Ctrl+Shift+R).\n" + msg;
   }
   window.addEventListener("error", function (e) {
     show((e.message || e.type) + (e.filename ? "\n" + e.filename.split("/").slice(-2).join("/") + ":" + e.lineno : ""));
@@ -218,7 +218,7 @@ a.back-link:hover { color: var(--white); }
 <!-- LOADING -->
 <div class="screen on" id="loading">
   <div class="panel">
-    <div class="kicker">Daily Rally</div>
+    <div class="kicker">Gravl</div>
     <h2 style="margin-top:6px">Building today's stage</h2>
     <div class="spinner"></div>
     <div id="loadStatus">generating candidates…</div>
@@ -228,7 +228,7 @@ a.back-link:hover { color: var(--white); }
 <!-- MENU -->
 <div class="screen" id="menu">
   <div class="panel">
-    <div class="kicker" id="menuKicker">Daily Rally</div>
+    <div class="kicker" id="menuKicker">Gravl</div>
     <div class="stage-head">
       <h1 id="menuTitle">#—</h1>
     </div>

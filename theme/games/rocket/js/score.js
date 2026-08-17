@@ -192,6 +192,7 @@ export function shareText(day, result, rec) {
   }
   lines.push(row);
   if (rec && rec.attempts === 1) { lines.push("first try"); }
-  lines.push(window.location.origin + window.location.pathname.replace(/index\.html$/, ""));
+  // canonical domain, not window.location: previews must not leak their URL
+  lines.push("https://quinnsavitt.com/games/rocket/");
   return lines.join("\n");
 }

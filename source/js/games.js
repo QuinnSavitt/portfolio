@@ -24,11 +24,13 @@
             live: true
         },
         {
+            // id stays "rally": it keys the played-today badge in localStorage,
+            // and the game itself stamps qs-game-rally-played on completion
             id: "rally",
-            title: "Daily Rally",
-            tagline: "One car, one procedurally generated rally stage, one day. Trust the co-driver, beat the clock. Fastest time wins.",
+            title: "Gravl",
+            tagline: "A new rally stage every day, driven blind. Trust the co-driver, beat the clock. Fastest time wins.",
             icon: "tf-speedometer",
-            url: "games/rally/index.html",
+            url: "games/gravl/index.html",
             daily: true,
             live: true
         }

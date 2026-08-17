@@ -1,4 +1,4 @@
-/* Daily Rally — 3D world construction and per-frame visuals.
+/* Gravl — 3D world construction and per-frame visuals.
  *
  * Everything is procedural, low-poly and vertex-coloured: road ribbon,
  * terrain skirts, instanced scenery, sky dome, weather particles and the

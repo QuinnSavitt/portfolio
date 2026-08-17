@@ -1,4 +1,4 @@
-/* Daily Rally — the co-driver.
+/* Gravl — the co-driver.
  *
  * Turns the stage's generated note list into well-timed spoken calls and a
  * compact visual strip. Call timing is dynamic: faster approach or a heavier

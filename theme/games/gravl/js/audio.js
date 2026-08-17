@@ -1,4 +1,4 @@
-/* Daily Rally — synthesized audio.
+/* Gravl — synthesized audio.
  *
  * Everything is generated in WebAudio: no samples, no downloads. The engine
  * is a pair of detuned oscillators tracking RPM through a soft waveshaper,

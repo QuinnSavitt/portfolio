@@ -1,4 +1,4 @@
-/* Daily Rally — game orchestration.
+/* Gravl — game orchestration.
  *
  * Owns the state machine (menu → countdown → running → finished), the fixed
  * 120 Hz physics loop, the chase camera, HUD, checkpoint/split/finish timing
@@ -214,7 +214,7 @@ function showMenu() {
 function fillMenu() {
   const st = S.stage;
   const rec = records.getDayRecord(S.day);
-  els.menuKicker.textContent = S.mode === "daily" ? "Daily Rally" : "Practice stage";
+  els.menuKicker.textContent = S.mode === "daily" ? "Gravl" : "Practice stage";
   els.menuTitle.textContent = (S.mode === "daily" ? "#" + st.number + " — " : "") + st.env.name.toUpperCase();
   els.menuSub.innerHTML = "<b>" + st.stageName + "</b> · " + st.kmText + " · " +
     st.surfaceName + " · " + st.weather.label + " · AWD";
@@ -321,7 +321,7 @@ function startRun(fromMenu) {
   S.countdownStep = -1;
   S.state = "countdown";
   showScreen(null);
-  els.stageTag.textContent = (S.mode === "daily" ? "DR #" + S.stage.number : "PRACTICE") +
+  els.stageTag.textContent = (S.mode === "daily" ? "GRAVL #" + S.stage.number : "PRACTICE") +
     " · " + S.stage.env.name + " · " + S.stage.stageName;
   els.splitPop.textContent = "";
   els.delta.textContent = "";
@@ -362,7 +362,7 @@ function showResults() {
   const { time, sectors, flags, prevSectors } = S.lastResult;
   const rec = records.getDayRecord(S.day);
   showScreen("results");
-  els.resKicker.textContent = (S.mode === "daily" ? "Daily Rally #" + S.stage.number : "Practice") +
+  els.resKicker.textContent = (S.mode === "daily" ? "Gravl #" + S.stage.number : "Practice") +
     " — " + S.stage.env.name + " · " + S.stage.stageName;
   els.resTime.textContent = fmtTime(time);
 
@@ -710,5 +710,5 @@ window.__RALLY = {
 };
 
 /* off we go */
-console.log("Daily Rally modules v" + (window.__DR_VERSION || "?") + " — main.js loaded");
+console.log("Gravl modules v" + (window.__DR_VERSION || "?") + " — main.js loaded");
 boot();

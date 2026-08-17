@@ -17,7 +17,7 @@
 import { pathToFileURL } from "url";
 import path from "path";
 
-const jsDir = path.resolve(import.meta.dirname, "../source/games/rally/js") + path.sep;
+const jsDir = path.resolve(import.meta.dirname, "../source/games/gravl/js") + path.sep;
 const base = pathToFileURL(jsDir).href;
 const { generateStage } = await import(base + "track.js");
 const { loadStage } = await import(base + "stage.js");

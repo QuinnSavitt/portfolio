@@ -1,4 +1,4 @@
-/* Daily Rally — persistence and sharing.
+/* Gravl — persistence and sharing.
  *
  * There is no server and no leaderboard. The social loop is Wordle's:
  * a copy-paste result your friends have to beat. The emoji sector grades
@@ -127,12 +127,13 @@ export function shareText(stage, rec) {
   const flagEmoji = { FI: "🇫🇮", GB: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", SE: "🇸🇪", MC: "🇲🇨", GR: "🇬🇷", MA: "🇲🇦" };
   const surf = { gravel: "🌲", gravelWet: "🌧️", tarmac: "🏔️", tarmacWet: "🌧️", snow: "❄️", dirt: "🏜️" };
   const lines = [];
-  lines.push("DAILY RALLY #" + stage.number + " 🏁");
+  lines.push("GRAVL #" + stage.number + " 🏁");
   lines.push((flagEmoji[stage.env.flag] || "") + " " + stage.env.name + " · " +
     (surf[stage.surfKey] || "") + " " + stage.surfaceName + " · " + stage.kmText);
+  const tries = rec.attempts + (rec.attempts === 1 ? " attempt" : " attempts");
   if (rec.best != null) {
     lines.push("");
-    lines.push("⏱️ " + fmtShare(rec.best) + " (" + rec.attempts + (rec.attempts === 1 ? " attempt)" : " attempts)"));
+    lines.push("⏱️ " + fmtShare(rec.best) + " (" + tries + ")");
     if (rec.blind != null) {
       lines.push(rec.blind === rec.best
         ? "🕶️ blind run — first try"
@@ -146,10 +147,19 @@ export function shareText(stage, rec) {
         sectorEmoji(rec.sectors[2], ideals[2])
       );
     }
+  } else {
+    lines.push("");
+    lines.push("💥 no finish yet (" + tries + ")");
   }
   lines.push("");
-  lines.push("Beat it.");
+  lines.push("Beat it. " + shareUrl());
   return lines.join("\n");
+}
+
+/* Canonical, not window.location.origin: a run played on a deploy preview or
+ * the netlify.app domain must not leak that URL into shared messages. */
+function shareUrl() {
+  return "https://quinnsavitt.com/games/gravl/";
 }
 
 function fmtShare(t) {

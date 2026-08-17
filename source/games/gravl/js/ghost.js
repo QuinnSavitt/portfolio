@@ -1,4 +1,4 @@
-/* Daily Rally — ghost recording, playback and the live PB delta.
+/* Gravl — ghost recording, playback and the live PB delta.
  *
  * Runs are sampled at 30 Hz and delta-encoded into Int16s (centimetre
  * positions, milliradian yaw), so a full minute of driving stores in well

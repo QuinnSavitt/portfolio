@@ -1,4 +1,4 @@
-/* Daily Rally — vehicle dynamics.
+/* Gravl — vehicle dynamics.
  *
  * A single-track (bicycle) model with longitudinal weight transfer, a
  * Pacejka-style tyre curve per surface, a friction ellipse coupling
@@ -110,6 +110,7 @@ export function makeCar() {
     vyUp: 0,      // world vertical speed while airborne
     airborne: false,
     airTime: 0,
+    groundStick: 0,   // s of takeoff hysteresis after a landing
     pitch: 0, roll: 0,           // rendered body attitude
     pitchV: 0, rollV: 0,
     groundPitch: 0, groundRoll: 0,
@@ -211,11 +212,22 @@ export function step(car, stage, input) {
     car.lastG = gC;
   }
   const cosY = Math.cos(car.yaw), sinY = Math.sin(car.yaw);
-  const gF = stage.groundHeight(car.x + cosY * 1.3, car.z + sinY * 1.3, car.s);
+  /* Axle-to-axle ground sampling. The old one-sided probe (centre -> 1.3 m
+   * ahead) measured the road ahead, not the chord the wheels actually sit
+   * on: on a crest the body pitched nose-down while parked on the apex and
+   * buried its nose in the far side; dips did the reverse. Same story for
+   * roll with its single side probe. The front probe also stretches with
+   * speed, so a short elevation kink stops reading as a cliff at 200 km/h
+   * (this slope feeds the liftoff test below). */
+  const lookF = Math.max(CAR.a, Math.abs(car.vx) * 0.06);
+  const gF = stage.groundHeight(car.x + cosY * lookF, car.z + sinY * lookF, car.s);
+  const gR = stage.groundHeight(car.x - cosY * CAR.b, car.z - sinY * CAR.b, car.s);
   const gS = stage.groundHeight(car.x - sinY * 0.8, car.z + cosY * 0.8, car.s);
+  const gS2 = stage.groundHeight(car.x + sinY * 0.8, car.z - cosY * 0.8, car.s);
   const groundY = gC.y;
-  const fwdSlope = gF ? (gF.y - gC.y) / 1.3 : 0;   // dy per metre forward
-  const latSlope = gS ? (gS.y - gC.y) / 0.8 : 0;   // dy per metre toward +d
+  const yF = gF ? gF.y : gC.y, yR = gR ? gR.y : gC.y;
+  const fwdSlope = (yF - yR) / (lookF + CAR.b);
+  const latSlope = gS && gS2 ? (gS.y - gS2.y) / 1.6 : gS ? (gS.y - gC.y) / 0.8 : 0;
   car.groundPitch = Math.atan(fwdSlope);
   car.groundRoll = Math.atan(latSlope);
   car.zone = gC.on;
@@ -260,12 +272,19 @@ export function step(car, stage, input) {
      * at a speed it never had. Jumps could not get the car airborne at all. */
     const targetVy = fwdSlope * car.vx;
     const needed = (targetVy - car.vyUp) / DT;
-    if (needed < -G * LIFTOFF && car.vx > 8) {
+    car.groundStick = Math.max(0, car.groundStick - DT);
+    // fresh off a landing the suspension is loaded: it takes real commitment
+    // to leave the ground again, which is what stops washboard micro-hops
+    const liftAt = G * LIFTOFF * (car.groundStick > 0 ? 2.5 : 1);
+    if (needed < -liftAt && car.vx > 8) {
       car.airborne = true;
       car.airTime = 0;
       ev.tookOff = true;   // vyUp is left as-is: it is the speed we really had
     } else {
-      car.y = groundY;
+      /* Rest on the chord between the axles, never below the ground under
+       * the car's middle: a crest shorter than the wheelbase carries the car
+       * on its apex. This is what keeps the body from clipping into hills. */
+      car.y = Math.max(groundY, (yF + yR) / 2);
       car.vyUp = targetVy;
     }
   }
@@ -276,11 +295,12 @@ export function step(car, stage, input) {
     car.y += car.vyUp * DT;
     // small pitch authority in the air (brake = nose down, throttle = nose up)
     car.pitchV += (car.throttle * 1.6 - car.brake * 2.2) * DT;
-    // world-frame ballistic travel
-    const wvx = car.vx * cosY - car.vyLat * -sinY;
+    // world-frame ballistic travel (wvx also feeds the landing misalignment
+    // check — its lateral term used to carry a flipped sign)
+    const wvx = car.vx * cosY - car.vyLat * sinY;
     const wvz = car.vx * sinY + car.vyLat * cosY;
-    car.x += (car.vx * cosY - car.vyLat * sinY) * DT;
-    car.z += (car.vx * sinY + car.vyLat * cosY) * DT;
+    car.x += wvx * DT;
+    car.z += wvz * DT;
     car.omega *= 0.995;
     car.yaw += car.omega * DT;
 
@@ -304,7 +324,13 @@ export function step(car, stage, input) {
       const scrub = Math.min(0.28, impact * 0.014 + mis * 0.1);
       car.vx *= 1 - scrub;
       car.vyLat *= 0.82;
-      car.vyUp = 0;
+      /* Land *following the ground*, not at vyUp = 0. Zeroing it meant the
+       * very next tick read any downhill under the landing as a >2 g demand
+       * and relaunched the car — every descending landing turned into a
+       * patter of micro-flights, each one scrubbing speed and kicking the
+       * nose. That was the bounce. */
+      car.vyUp = fwdSlope * car.vx;
+      car.groundStick = 0.15;
       ev.landed = impact;
       car.pitchV -= impact * 0.05;
       if (impact > 9.5) { car.damage += (impact - 9.5) * 6; ev.impact = impact; }

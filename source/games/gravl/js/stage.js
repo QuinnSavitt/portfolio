@@ -1,4 +1,4 @@
-/* Daily Rally — stage selection with automated test driving.
+/* Gravl — stage selection with automated test driving.
  *
  * Before a candidate becomes the daily, a deterministic bot drives it through
  * the real physics at a cautious 85% of the profile speeds. Candidates the
