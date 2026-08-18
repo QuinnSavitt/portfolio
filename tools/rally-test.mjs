@@ -5,6 +5,7 @@
  *   node tools/rally-test.mjs gen       generation sweep only
  *   node tools/rally-test.mjs drive     bot test drives only
  *   node tools/rally-test.mjs ladder    pace notes vs the input they need
+ *   node tools/rally-test.mjs stance    rendered wheels vs the ground
  *   node tools/rally-test.mjs today     print today's stage + pace notes
  *
  * The gen sweep checks 61 consecutive days for validity and determinism.
@@ -21,7 +22,7 @@ const jsDir = path.resolve(import.meta.dirname, "../source/games/gravl/js") + pa
 const base = pathToFileURL(jsDir).href;
 const { generateStage } = await import(base + "track.js");
 const { loadStage } = await import(base + "stage.js");
-const { makeCar, resetCar, step, botInput, DT } = await import(base + "physics.js");
+const { makeCar, resetCar, step, botInput, DT, CAR } = await import(base + "physics.js");
 const { fmtTime, dayIndex } = await import(base + "daily.js");
 
 const mode = process.argv[2] || "all";
@@ -36,8 +37,27 @@ function stageFingerprint(st) {
   return h;
 }
 
+/* How far each rendered wheel sits from the ground under it, in metres.
+ * Mirrors the transform in world.js updateCar: a body point (x, y, z) is
+ * drawn at world height bodyY + (x sinP + y cosP) cosR + z sinR, so the
+ * bottom of a hub at rest is that, less the tyre radius. The renderer hides
+ * whatever is left inside the suspension travel, so a gap wider than that is
+ * a wheel the player can see hanging in the air. */
+const SUS_UP = 0.18, SUS_DOWN = 0.24;
+function stanceGaps(car, out) {
+  const sinP = Math.sin(car.pitch), cosP = Math.cos(car.pitch);
+  const sinR = Math.sin(car.roll), cosR = Math.cos(car.roll);
+  for (let i = 0; i < 4; i++) {
+    const wx = i < 2 ? CAR.a : -CAR.b;
+    const wz = i & 1 ? -CAR.halfTrack : CAR.halfTrack;
+    const bottom = car.bodyY + (wx * sinP + CAR.wheelR * cosP) * cosR + wz * sinR - CAR.wheelR;
+    out[i] = bottom - car.contact[i];
+  }
+}
+
 function botDrive(st, skill, maxSeconds) {
   const car = makeCar();
+  car.visual = true;   // exercise the render-only contact sampling too
   resetCar(car, st);
   let t = 0, offRoad = 0, maxDamage = 0, finished = false;
   const maxTicks = (maxSeconds || 180) * 120;
@@ -107,6 +127,41 @@ if (mode === "all" || mode === "drive") {
     console.log(`day ${day} ${st.env.id.padEnd(8)} est=${fmtTime(st.botTime)} drove=${res.finished ? fmtTime(res.t) : "DNF@" + Math.round(res.s) + "m (" + res.reason + ")"} offroad=${res.offRoad.toFixed(1)}s dmg=${res.maxDamage.toFixed(0)} ${ok ? "OK" : "FAIL"}`);
   }
   console.log(fails === 0 ? "DRIVE SWEEP OK" : `DRIVE SWEEP: ${fails} fails`);
+}
+
+if (mode === "all" || mode === "stance") {
+  console.log("\n=== wheel stance (rendered wheels vs the ground) ===");
+  const gaps = [0, 0, 0, 0];
+  let fails = 0;
+  for (const day of [1, 4, 10, 13, 22, 25]) {
+    const st = loadStage(day);
+    const car = makeCar();
+    car.visual = true;
+    resetCar(car, st);
+    let worstLeft = 0, worstLand = 0, sum = 0, n = 0, airTicks = 0, sinceLand = 999;
+    for (let i = 0; i < 180 * 120; i++) {
+      step(car, st, botInput(car, st, st.profile, 0.85));
+      if (car.airborne) { airTicks++; sinceLand = 0; continue; }
+      sinceLand++;
+      stanceGaps(car, gaps);
+      for (const g of gaps) {
+        /* what the suspension cannot swallow: droop for a wheel left
+         * hanging, compression for one buried in the ground */
+        const left = Math.max(0, g > 0 ? g - SUS_DOWN : -g - SUS_UP);
+        // the first fifth of a second after a landing is the body still
+        // coming down onto its wheels, and is reported on its own
+        if (sinceLand > 30) worstLeft = Math.max(worstLeft, left);
+        else worstLand = Math.max(worstLand, left);
+        sum += Math.abs(g); n++;
+      }
+      if (car.dead || car.s >= st.finishS) break;
+    }
+    const mean = n ? sum / n : 0;
+    const ok = worstLeft <= 0.005;
+    if (!ok) fails++;
+    console.log(`day ${String(day).padStart(2)} ${st.env.id.padEnd(8)} mean-gap=${mean.toFixed(3)}m off-ground=${worstLeft.toFixed(3)}m (landings ${worstLand.toFixed(3)}m) air=${(airTicks / 120).toFixed(1)}s ${ok ? "OK" : "FAIL"}`);
+  }
+  console.log(fails === 0 ? "STANCE OK" : `STANCE: ${fails} fails`);
 }
 
 if (mode === "all" || mode === "ladder") {

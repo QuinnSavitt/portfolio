@@ -104,6 +104,7 @@ export function ghostPose(ghost, t) {
     y: fr[k0 + 1] + (fr[k1 + 1] - fr[k0 + 1]) * a,
     z: fr[k0 + 2] + (fr[k1 + 2] - fr[k0 + 2]) * a,
     yaw: fr[k0 + 3] + dyaw * a,
+    s: fr[k0 + 4] + (fr[k1 + 4] - fr[k0 + 4]) * a,   // ground-query hint
   };
 }
 

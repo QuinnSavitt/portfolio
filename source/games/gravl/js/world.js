@@ -9,6 +9,11 @@
 
 import * as THREE from "three";
 import { DS } from "./track.js";
+import { CAR } from "./physics.js";
+
+/* Suspension travel, metres. The body is drawn on the spring and each wheel
+ * is drawn on the ground under it; the gap between the two is the travel. */
+const SUS_UP = 0.18, SUS_DOWN = 0.24;
 
 /* ------------------------------------------------------------- palettes */
 
@@ -607,6 +612,7 @@ export function buildWorld(stage, opts) {
   }
 
   // ---- the car
+  let ghostPitch = 0;
   const { carGroup, wheels, bodyGroup } = buildCar(false);
   scene.add(carGroup);
   const ghost = buildCar(true);
@@ -678,14 +684,40 @@ export function buildWorld(stage, opts) {
 
   /* ------------------------------------------------- per-frame updaters */
 
-  function updateCar(car, steerVisual) {
-    carGroup.position.set(car.x, car.y, car.z);
+  function updateCar(car, steerVisual, dt) {
+    const step = dt > 0 ? Math.min(0.05, dt) : 1 / 60;
+    const bodyY = car.contactOK ? car.bodyY : car.y;
+    carGroup.position.set(car.x, bodyY, car.z);
     carGroup.rotation.set(0, -car.yaw, 0);
-    bodyGroup.rotation.set(car.roll, 0, -car.pitch);
-    const spin = car.vx / 0.31;
-    for (const w of wheels) {
-      w.mesh.rotation.z -= spin * 0.016;
-      if (w.front) w.mesh.parent.rotation.y = -steerVisual * 0.9;
+    /* Nose-up and right-side-up are positive. Both used to be negated here,
+     * so the car leaned into the hill it was descending and its front wheels
+     * hung a wheelbase of slope clear of the road - the steeper the descent,
+     * the worse it looked, because the error is twice the grade. */
+    bodyGroup.rotation.set(-car.roll, 0, car.pitch);
+
+    const sinP = Math.sin(car.pitch), cosP = Math.cos(car.pitch);
+    const sinR = Math.sin(car.roll), cosR = Math.cos(car.roll);
+    const up = Math.max(0.4, cosP * cosR);
+    const spin = (car.vx / CAR.wheelR) * step;
+    const k = 1 - Math.exp(-step * 26);
+    for (let i = 0; i < wheels.length; i++) {
+      const w = wheels[i];
+      w.mesh.rotation.z -= spin;
+      if (w.front) w.pivot.rotation.y = -steerVisual * 0.9;
+      /* Drop each hub onto the ground beneath it. A body point (x, y, z) is
+       * drawn at world height bodyY + (x sinP + y cosP) cosR + z sinR, so
+       * solving that for y gives the local height that stands this tyre on
+       * its own contact patch; the body keeps the averaged plane and the
+       * springs absorb the difference. */
+      let t = 0;
+      if (car.airborne) t = -SUS_DOWN * 0.55;          // wheels hang in flight
+      else if (car.contactOK) {
+        const want = car.contact[i] + CAR.wheelR;
+        const local = (want - bodyY - w.x * sinP * cosR - w.z * sinR) / up;
+        t = Math.max(-SUS_DOWN, Math.min(SUS_UP, local - CAR.wheelR));
+      }
+      w.travel += (t - w.travel) * k;
+      w.pivot.position.y = CAR.wheelR + w.travel;
     }
     const g = stage.groundHeight(car.x, car.z, car.s);
     if (g) {
@@ -698,11 +730,22 @@ export function buildWorld(stage, opts) {
     }
   }
 
-  function updateGhost(state) {
+  function updateGhost(state, dt) {
     if (!state) { ghost.carGroup.visible = false; return; }
     ghost.carGroup.visible = true;
     ghost.carGroup.position.set(state.x, state.y, state.z);
     ghost.carGroup.rotation.set(0, -state.yaw, 0);
+    /* A ghost frame is a pose, not a chassis - it stores no attitude at all.
+     * Read one back off the ground under its axles so the replay climbs and
+     * drops with the road instead of sliding down it flat. */
+    const cosY = Math.cos(state.yaw), sinY = Math.sin(state.yaw);
+    const gf = stage.groundHeight(state.x + cosY * CAR.a, state.z + sinY * CAR.a, state.s);
+    const gr = stage.groundHeight(state.x - cosY * CAR.b, state.z - sinY * CAR.b, state.s);
+    // clear of the ground by more than the suspension can reach: it is flying
+    const flying = !gf || !gr || state.y - Math.max(gf.y, gr.y) > 0.55;
+    const target = flying ? ghostPitch * 0.94 : Math.atan((gf.y - gr.y) / (CAR.a + CAR.b));
+    ghostPitch += (target - ghostPitch) * (1 - Math.exp(-(dt > 0 ? Math.min(0.05, dt) : 1 / 60) * 12));
+    ghost.bodyGroup.rotation.set(0, 0, ghostPitch);
   }
 
   function spawnDust(car, amount) {
@@ -807,16 +850,20 @@ function buildCar(isGhost) {
   pods.position.set(2.32, 0.62, 0);
   bodyGroup.add(pods);
 
-  // wheels: parent pivots so fronts can steer
+  /* Wheels: parent pivots so the fronts can steer and each corner can take
+   * up its own suspension travel. They sit on the physics axles (CAR.a/CAR.b
+   * out from the CG, which is where this group's origin is), so the plane the
+   * body is drawn on is the plane the contact patches actually describe.
+   * Order matches car.contact: front +d, front -d, rear +d, rear -d. */
   const wheels = [];
-  const wheelGeo = new THREE.CylinderGeometry(0.31, 0.31, 0.28, 10);
+  const wheelGeo = new THREE.CylinderGeometry(CAR.wheelR, CAR.wheelR, 0.28, 10);
   wheelGeo.rotateX(Math.PI / 2);
   for (const [wx, wz, front] of [
-    [1.28, 0.78, true], [1.28, -0.78, true],
-    [-1.28, 0.78, false], [-1.28, -0.78, false],
+    [CAR.a, CAR.halfTrack, true], [CAR.a, -CAR.halfTrack, true],
+    [-CAR.b, CAR.halfTrack, false], [-CAR.b, -CAR.halfTrack, false],
   ]) {
     const pivot = new THREE.Group();
-    pivot.position.set(wx, 0.31, wz);
+    pivot.position.set(wx, CAR.wheelR, wz);
     const wheel = new THREE.Mesh(wheelGeo, mat(0x14161a));
     const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.3, 8), mat(0xb8b4a8));
     hub.rotation.x = Math.PI / 2;
@@ -826,7 +873,7 @@ function buildCar(isGhost) {
     // wheels parented to carGroup stayed flat while it leaned, so they visibly
     // came away from the arches
     bodyGroup.add(pivot);
-    wheels.push({ mesh: wheel, pivot, front });
+    wheels.push({ mesh: wheel, pivot, front, x: wx, z: wz, travel: 0 });
   }
 
   return { carGroup, bodyGroup, wheels };

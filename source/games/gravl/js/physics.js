@@ -36,6 +36,7 @@ export const CAR = {
   b: 1.39,           // CG -> rear axle
   h: 0.5,            // CG height (weight transfer)
   wheelR: 0.31,
+  halfTrack: 0.78,   // wheel centre out from the centreline (contact patches)
   power: 206000,     // W at the crank
   drivetrainEff: 0.84,
   frontDrive: 0.42,  // AWD torque split
@@ -111,9 +112,24 @@ export function makeCar() {
     airborne: false,
     airTime: 0,
     groundStick: 0,   // s of takeoff hysteresis after a landing
-    pitch: 0, roll: 0,           // rendered body attitude
+    /* Rendered body attitude. Nose-up and right-side-up are positive, which
+     * is what the in-air pitch authority and the load-transfer terms below
+     * have always assumed - it was only the renderer that read them upside
+     * down. */
+    pitch: 0, roll: 0,
     pitchV: 0, rollV: 0,
     groundPitch: 0, groundRoll: 0,
+    /* Render-only chassis: the ground height under each of the four wheels
+     * and the body height riding on them. Sampled only when car.visual is
+     * set, so the stage audition does not pay for four extra ground queries
+     * a tick on a drive nobody ever sees. */
+    visual: false,
+    contact: [0, 0, 0, 0],
+    contactOK: false,
+    bodyY: 0,
+    pitchLoad: 0, rollLoad: 0,   // dive/squat/lean, springed on top of the ground
+    wasAir: false,
+    airBlend: 0, airPitch: 0, airRoll: 0,   // attitude carried out of a landing
     sigma: 0, steer: 0,
     throttle: 0, brake: 0, handbrake: false, hbBlend: 0,
     gear: 1, rpm: CAR.idle,
@@ -131,13 +147,15 @@ export function makeCar() {
 }
 
 export function resetCar(car, stage) {
-  const fresh = makeCar();
-  Object.assign(car, fresh);
+  const visual = car.visual;
+  Object.assign(car, makeCar());
+  car.visual = visual;
   const i = Math.round(stage.startS / 2);
   car.x = stage.geo.x[i];
   car.z = stage.geo.z[i];
   car.y = stage.geo.y[i];
   car.yaw = stage.geo.heading[i];
+  car.bodyY = car.y;
   car.s = stage.startS;
 }
 
@@ -235,6 +253,26 @@ export function step(car, stage, input) {
   car.d = gC.rq.d;
   car.roadGrade = gC.rq.grade;
 
+  /* ---- contact patches (render only)
+   * The two probes above are physics probes: the front one stretches with
+   * speed so that a jump is seen coming, and roll is read from a pair of
+   * points either side of the CG. Right for gravity and for the liftoff
+   * test, wrong for drawing a car - at 180 km/h down a hill they describe a
+   * plane the wheels are nowhere near, which is why the tyres floated over
+   * every descent. These four sample the ground exactly where the wheels
+   * are, in the order the renderer expects: front +d, front -d, rear +d,
+   * rear -d. */
+  if (car.visual) {
+    const c = car.contact;
+    for (let i = 0; i < 4; i++) {
+      const wx = i < 2 ? CAR.a : -CAR.b;
+      const wz = i & 1 ? -CAR.halfTrack : CAR.halfTrack;
+      const g = stage.groundHeight(car.x + cosY * wx - sinY * wz, car.z + sinY * wx + cosY * wz, car.s);
+      c[i] = g ? g.y : gC.y;
+    }
+    car.contactOK = true;
+  }
+
   // ---- surface parameters
   let mu, B, C, muLong, extraDrag = 0, rumbleAmt = 0;
   const grip = stage.grip, off = stage.offroad;
@@ -295,6 +333,10 @@ export function step(car, stage, input) {
     car.y += car.vyUp * DT;
     // small pitch authority in the air (brake = nose down, throttle = nose up)
     car.pitchV += (car.throttle * 1.6 - car.brake * 2.2) * DT;
+    /* and a slow trim towards the flight path, so a long jump comes down
+     * pointing roughly where it is going rather than pinned at whatever
+     * angle the throttle left it at. */
+    car.pitch += (Math.atan2(car.vyUp, Math.max(6, Math.abs(car.vx))) - car.pitch) * 1.1 * DT;
     // world-frame ballistic travel (wvx also feeds the landing misalignment
     // check — its lateral term used to carry a flipped sign)
     const wvx = car.vx * cosY - car.vyLat * sinY;
@@ -561,17 +603,69 @@ export function step(car, stage, input) {
     }
   }
 
-  // ---- body attitude springs (rendering only)
-  const targetPitch = car.airborne ? car.pitch + car.pitchV * DT : car.groundPitch - car.axSmooth * 0.012;
-  const targetRoll = car.airborne ? car.roll * 0.99 : car.groundRoll + (car.vx * car.omega) * 0.02;
+  /* ---- body attitude and ride height (rendering only)
+   * Split in two, because the two halves want opposite things. Where the car
+   * sits is kinematics - the wheels are on the ground, so the chassis follows
+   * the plane through the four contact patches almost exactly, and only
+   * enough spring is left in it to take the fizz out of rough terrain. How
+   * the car leans is the body on its dampers - dive, squat and roll are
+   * genuinely laggy, so they spring on top. Running one soft spring for both
+   * (which is what this used to be) buys a bit of weight in the corners and
+   * pays for it with wheels that hang off the road all the way down a hill.
+   * None of it feeds back into the simulation: runs stay bit-identical. */
   if (car.airborne) {
-    car.pitch += car.pitchV * DT;
-    car.pitch = Math.max(-0.5, Math.min(0.5, car.pitch));
+    car.pitch = Math.max(-0.5, Math.min(0.5, car.pitch + car.pitchV * DT));
+    car.roll *= 0.99;
+    car.bodyY = car.y;
+    car.wasAir = true;
   } else {
+    const c = car.contact;
+    const fwd = car.contactOK
+      ? Math.atan(((c[0] + c[1]) - (c[2] + c[3])) / (2 * (CAR.a + CAR.b)))
+      : car.groundPitch;
+    const lat = car.contactOK
+      ? Math.atan(((c[0] + c[2]) - (c[1] + c[3])) / (4 * CAR.halfTrack))
+      : car.groundRoll;
+    /* Load transfer: braking dives the nose, power lifts it, and the body
+     * leans out of the corner (vx*omega is the lateral acceleration, signed
+     * towards the inside of the turn). Held to what the suspension can
+     * actually travel - about 3.5 degrees of dive and 6 of roll at the limit.
+     * The old gains were twice these, from back when the renderer drew both
+     * upside down and the lean had to be enormous to read as anything. */
     car.pitchV = 0;
-    car.pitch += (targetPitch - car.pitch) * 0.12;
+    car.pitchLoad += (Math.max(-0.06, Math.min(0.06, car.axSmooth * 0.0065)) - car.pitchLoad) * 0.12;
+    car.rollLoad += (Math.max(-0.1, Math.min(0.1, car.vx * car.omega * 0.0095)) - car.rollLoad) * 0.1;
+    /* Whatever attitude the car was flying at is bled off over a fifth of a
+     * second rather than sprung away, so a nose-high landing plants its
+     * wheels while the body is still coming down. */
+    if (car.wasAir) {
+      car.wasAir = false;
+      car.airBlend = 1;
+      /* Clamped hard: once the tyres are down the chassis is theirs, and a
+       * car cannot sit 30 degrees nose-high on four wheels no matter how it
+       * was flying. What is left reads as the slam of the landing. */
+      car.airPitch = Math.max(-0.12, Math.min(0.12, car.pitch - fwd - car.pitchLoad));
+      car.airRoll = Math.max(-0.1, Math.min(0.1, car.roll - lat - car.rollLoad));
+      // set, not sprung: the tyres are down on this tick, not three later
+      car.pitch = fwd + car.pitchLoad + car.airPitch;
+      car.roll = lat + car.rollLoad + car.airRoll;
+    }
+    car.airBlend = Math.max(0, car.airBlend - DT / 0.18);
+    const ease = car.airBlend * car.airBlend * (3 - 2 * car.airBlend);
+    const targetPitch = fwd + car.pitchLoad + car.airPitch * ease;
+    const targetRoll = lat + car.rollLoad + car.airRoll * ease;
+    car.pitch += (Math.max(-0.7, Math.min(0.7, targetPitch)) - car.pitch) * 0.4;
+    car.roll += (Math.max(-0.45, Math.min(0.45, targetRoll)) - car.roll) * 0.4;
+    /* Ride height off the same four patches, never below the ground under
+     * the car's belly - a crest shorter than the wheelbase carries it on the
+     * apex. car.y keeps the speed-stretched probe it needs for landings, so
+     * the two differ by a few centimetres over broken ground; that gap is
+     * exactly what the suspension travel in the renderer takes up. */
+    const chord = car.contactOK
+      ? ((c[0] + c[1]) * CAR.b + (c[2] + c[3]) * CAR.a) / (2 * (CAR.a + CAR.b))
+      : car.y;
+    car.bodyY += (Math.max(groundY, chord) - car.bodyY) * 0.6;
   }
-  car.roll += (Math.max(-0.4, Math.min(0.4, targetRoll)) - car.roll) * 0.1;
 
   if (car.crashTimer > 0) car.crashTimer -= DT;
 

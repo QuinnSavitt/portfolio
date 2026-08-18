@@ -46,7 +46,9 @@ const S = {
   world: null,
   renderer: null,
   camera: null,
-  car: makeCar(),
+  // visual: on, so the physics samples the ground under each wheel for the
+  // renderer. The stage audition's throwaway cars leave it off.
+  car: Object.assign(makeCar(), { visual: true }),
   codriver: null,
   recorder: makeRecorder(),
   settings: records.getSettings(),
@@ -521,11 +523,11 @@ function frame(now) {
   updateCamera(dt);
 
   const car = S.car;
-  S.world.updateCar(car, car.steer);
+  S.world.updateCar(car, car.steer, dt);
   if (S.state === "running" && S.settings.ghost && S.pbGhost) {
-    S.world.updateGhost(ghostPose(S.pbGhost, S.ticks / 120));
+    S.world.updateGhost(ghostPose(S.pbGhost, S.ticks / 120), dt);
   } else {
-    S.world.updateGhost(null);
+    S.world.updateGhost(null, dt);
   }
   S.world.updateParticles(dt, S.camPos);
   audio.update(car, S.stage, dt);
@@ -651,7 +653,8 @@ function updateCamera(dt) {
   if (S.camMode === 2) {
     // hood
     desired = tmpV.set(car.x + cosY * 0.35, car.y + 1.14, car.z + sinY * 0.35).clone();
-    look = new THREE.Vector3(car.x + cosY * 40, car.y + 1.14 - car.pitch * 22, car.z + sinY * 40);
+    // aim partway up the slope the car is actually sitting on (nose-up +)
+    look = new THREE.Vector3(car.x + cosY * 40, car.y + 1.14 + car.pitch * 22, car.z + sinY * 40);
     fov = 70 + Math.min(18, v * 0.22);
     S.camPos.copy(desired);
     S.camLook.lerp(look, Math.min(1, dt * 20));
