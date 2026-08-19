@@ -103,13 +103,30 @@ gulp.task("scss:build", function () {
   return stream.pipe(gulp.dest(DEST + "css/")).pipe(bs.reload({ stream: true }));
 });
 
-// Javascript
-gulp.task("js:build", function () {
-  let stream = gulp
-    .src(path_.src.js)
+/**
+ * synta.js and syt.js are modern ES6+, while .jshintrc is still on the stock
+ * template's settings (es3: true, quotmark: double - it even sets es3 and
+ * esnext together, which contradict). Linting them produced ~900 lines of
+ * style complaints on every build without ever failing it, which buried the
+ * output that actually matters. They are excluded until the config is brought
+ * up to date; delete this list to lint everything again.
+ */
+const LINT_SKIP = ["!source/js/synta.js", "!source/js/syt.js"];
+
+// Lint. Deliberately separate from js:build - folding the two together means
+// anything excluded from linting also stops being copied to the build, which
+// would silently drop synta.js and syt.js from the deployed site.
+gulp.task("js:lint", function () {
+  return gulp
+    .src([path_.src.js].concat(LINT_SKIP))
     .pipe(customPlumber("Error Running JS"))
     .pipe(jshint("./.jshintrc"))
     .pipe(jshint.reporter("jshint-stylish"));
+});
+
+// Javascript - every file ships, whether or not it is linted above.
+gulp.task("js:build", function () {
+  let stream = gulp.src(path_.src.js).pipe(customPlumber("Error Running JS"));
 
   if (PROD) stream = stream.pipe(terser());
 
@@ -304,7 +321,7 @@ gulp.task("watch:build", function () {
   gulp.watch(path_.src.html, gulp.series("html:build"));
   gulp.watch(path_.src.htminc, gulp.series("html:build"));
   gulp.watch(path_.src.scssWatch, gulp.series("scss:build"));
-  gulp.watch(path_.src.js, gulp.series("js:build"));
+  gulp.watch(path_.src.js, gulp.series("js:lint", "js:build"));
   gulp.watch(path_.src.images, gulp.series("images:build"));
   gulp.watch(path_.src.fonts, gulp.series("fonts:build"));
   gulp.watch("source/plugins/**/*.*", gulp.series("plugins:build"));
@@ -314,6 +331,7 @@ gulp.task("watch:build", function () {
 
 const assetTasks = [
   "html:build",
+  "js:lint",
   "js:build",
   "scss:build",
   "images:build",

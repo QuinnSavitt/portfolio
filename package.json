@@ -4,6 +4,9 @@
   "description": "phantom free bootstrap portfolio template",
   "author": "Themefisher",
   "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "gulp",
     "build": "gulp build && node tools/check-build.mjs",

@@ -2,6 +2,14 @@
 publish = "theme"
 command = "npm run build"
 
+# gulp-rev-rewrite 7 declares `engines: node >=24` and uses RegExp.escape and
+# the `v` regex flag, neither of which exists on Node 22. Netlify's default was
+# 22, so the fingerprinting step died with "RegExp.escape is not a function"
+# after every other task had already succeeded. Pin the runtime the build is
+# actually developed and tested against.
+[build.environment]
+NODE_VERSION = "24"
+
 # Daily Rally became Gravl (2026-08); keep old links and bookmarks working.
 [[redirects]]
 from = "/games/rally/*"
