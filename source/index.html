@@ -1,15 +1,25 @@
-@@include('header.htm')
+@@include('header.htm', {"title": "Quinn Savitt — Software Engineer", "description": "Quinn Savitt is a software engineer and CS honors researcher at the University of Maryland. Projects, proofs, games and interactive experiments."})
 
 <main class="site-wrapper">
   <div class="pt-table">
-    <div class="pt-tablecell page-home relative" style="background-image: url('images/banner.jpg');">
+    <div class="pt-tablecell page-home relative">
       <div class="overlay"></div>
 
       <div class="container">
         <div class="row">
           <div class="col-xs-12 col-md-offset-1 col-md-10 col-lg-offset-2 col-lg-8">
             <div class="page-title home text-center">
-              <img src="images/QuinnSavitt.png" style="width: 600px; height: auto;" alt="Quinn Savitt" />
+              <!-- Largest element on the page, so it decides the LCP score.
+                   fetchpriority=high jumps it ahead of the stylesheets in the
+                   request queue; the width/height attributes reserve its box
+                   up front so nothing below it shifts once it lands. -->
+              <picture>
+                <source type="image/webp"
+                        srcset="images/QuinnSavitt-600.webp 600w, images/QuinnSavitt.webp 1200w"
+                        sizes="(max-width: 680px) 90vw, 600px">
+                <img src="images/QuinnSavitt.png" alt="Quinn Savitt"
+                     width="1200" height="239" fetchpriority="high" decoding="async" />
+              </picture>
               <p>Software Engineer, CS Honors Research at University of Maryland</p>
             </div>
 

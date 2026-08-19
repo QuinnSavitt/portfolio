@@ -1,4 +1,4 @@
-@@include('header.htm')
+@@include('header.htm', {"title": "Projects — Quinn Savitt", "description": "Projects by Quinn Savitt across languages and tools, games, apps and web, and research."})
 
 <main class="site-wrapper">
   <div class="pt-table">
@@ -217,5 +217,11 @@
     </div> <!-- /.pt-tablecell -->
   </div> <!-- /.pt-table -->
 </main> <!-- /.site-wrapper -->
+
+<!-- Isotope drives the filter buttons above, and is needed nowhere else on the
+     site - so it loads here rather than in the shared footer. Deferred scripts
+     run in document order, so it is ready by the time script.js initialises the
+     grid. -->
+<script src="plugins/isotope/isotope.pkgd.min.js" defer></script>
 
 @@include('footer.htm')

@@ -2,6 +2,15 @@
     Home Page
 -------------------------------------------------*/
 .page-home {
+  // Moved out of an inline style on index.html so it can serve WebP. The two
+  // declarations are a deliberate cascade: browsers that do not understand
+  // image-set() keep the JPEG from the first line rather than dropping the
+  // background entirely.
+  background-image: url("../images/banner.jpg");
+  background-image: image-set(
+    url("../images/banner.webp") type("image/webp"),
+    url("../images/banner.jpg") type("image/jpeg")
+  );
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;

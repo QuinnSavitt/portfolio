@@ -2,52 +2,95 @@
 @import "mixins";
 @import "base";
 
+/*------------------------------------------------
+	Intro wipe
+
+	Five bars covering the viewport that peel away to reveal the page.
+
+	This is deliberately pure CSS. The previous version waited on
+	`window.load` before starting, which meant it hung until every image and
+	font had finished downloading, and it never fired at all when the load
+	event had already gone by (bfcache restores, warm caches) - leaving the
+	bars stuck over the page. Driving it from an animation means it starts at
+	first paint, always runs exactly once, and always ends.
+
+	The bars animate `transform`, not `width`: scaling runs on the compositor,
+	whereas animating width relayouts the document on every frame of five
+	simultaneous animations, which is what made the reveal stutter.
+-------------------------------------------------*/
+$wipe-duration: 0.42s;
+$wipe-stagger: 0.05s;
+$wipe-total: $wipe-duration + ($wipe-stagger * 4);
+
 .preloader {
+  position: fixed;
+  top: 0;
+  right: 0;
   bottom: 0;
   left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
   z-index: 1000;
-  @include flexbox();
-  &.active.hidden {
+  // Never intercept input, even mid-animation. The old overlay stayed in the
+  // hit-testing tree after finishing and quietly swallowed clicks.
+  pointer-events: none;
+  // Leaves the tree for good once the bars are gone. Note this is a real
+  // duration rather than a 0s animation on a delay: zero-length animations
+  // are unreliable across engines and this one intermittently failed to apply
+  // its fill state, which is the exact flakiness this rewrite exists to remove.
+  animation: preloader-retire ($wipe-total + 0.03s) linear forwards;
+
+  // The bars cover the viewport at the *start* of their animation, so anything
+  // that stalls that animation before its first frame leaves the page hidden
+  // behind them - the same way the old load-event version could stick. A
+  // renderer that never gets a frame does exactly this. script.js therefore
+  // sets this class on animationend and, failing that, on a timeout, so the
+  // overlay has a guaranteed exit that does not depend on the animation
+  // running at all. CSS still drives the wipe itself; this only removes it.
+  &.is-done {
     display: none;
+  }
+}
+
+@keyframes preloader-retire {
+  // Stays put for the whole wipe, then drops out of the tree.
+  0%,
+  99% {
+    visibility: visible;
+  }
+  100% {
+    visibility: hidden;
   }
 }
 
 .loading-mask {
   background-color: $primary-color;
-  height: 100%;
-  left: 0;
   position: absolute;
   top: 0;
-  width: 20%;
-  @include transition(all 0.6s cubic-bezier(0.61, 0, 0.6, 1) 0s);
+  height: 100%;
+  width: 20.1%; // hairline overlap, so no seam shows between bars
+  transform-origin: left center;
+  animation: preloader-wipe $wipe-duration cubic-bezier(0.61, 0, 0.6, 1) both;
 
-  &:nth-child(2) {
-    left: 20%;
-    @include transition-delay(0.1s);
-  }
-  &:nth-child(3) {
-    left: 40%;
-    @include transition-delay(0.2s);
-  }
-  &:nth-child(4) {
-    left: 60%;
-    @include transition-delay(0.3s);
-  }
-  &:nth-child(5) {
-    left: 80%;
-    @include transition-delay(0.4s);
+  @for $i from 1 through 5 {
+    &:nth-child(#{$i}) {
+      left: ($i - 1) * 20%;
+      animation-delay: ($i - 1) * $wipe-stagger;
+    }
   }
 }
 
-.preloader.active {
-  &.done {
-    z-index: 0;
+@keyframes preloader-wipe {
+  from {
+    transform: scaleX(1);
   }
-  .loading-mask {
-    width: 0;
+  to {
+    transform: scaleX(0);
+  }
+}
+
+// Visitors who ask for less motion get the content immediately.
+@media (prefers-reduced-motion: reduce) {
+  .preloader {
+    display: none;
   }
 }
 
@@ -70,6 +113,14 @@
   margin-bottom: 75px;
   img {
     margin-bottom: 20px;
+  }
+  // The homepage wordmark. Sized here rather than inline so it can shrink on
+  // narrow screens; the img's width/height attributes still supply the aspect
+  // ratio that reserves its space before the file arrives.
+  &.home img {
+    width: 600px;
+    max-width: 90%;
+    height: auto;
   }
   h2 {
     font-size: 68px;
@@ -350,6 +401,23 @@
 .history-scroller {
   padding-top: 82px;
   max-height: 377px;
+  // Scrolling used to come from the niceScroll plugin, which cost jQuery plus
+  // 60KB to reimplement something browsers do natively. The max-height above
+  // only clips without this.
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: $primary-color transparent;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: $primary-color;
+  }
 }
 
 .history-item {
@@ -799,11 +867,16 @@
   color: $primary-color;
 }
 
-.pt-table.desktop-768 .pt-tablecell {
-  padding-bottom: 110px;
-  padding-top: 60px;
-  .page-nav {
-    bottom: 40px;
+// Was a `desktop-768` class toggled by a JS window-height check that only ran
+// on load, so it never updated on resize or orientation change. The browser
+// already tracks this.
+@media (max-height: 768px) {
+  .pt-table .pt-tablecell {
+    padding-bottom: 110px;
+    padding-top: 60px;
+    .page-nav {
+      bottom: 40px;
+    }
   }
 }
 

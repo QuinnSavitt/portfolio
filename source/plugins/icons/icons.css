@@ -1,0 +1,34 @@
+@font-face{font-family:themefisher-font;src:url(/plugins/icons/icons.woff2) format("woff2");font-weight:normal;font-style:normal;font-display:swap}
+[class^="tf-"],[class*=" tf-"]{font-family:themefisher-font!important;speak:never;font-style:normal;font-weight:normal;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.tf-aperture::before{content:"\e056"}
+.tf-beaker::before{content:"\e03c"}
+.tf-book-open::before{content:"\e00b"}
+.tf-briefcase2::before{content:"\e015"}
+.tf-chat::before{content:"\e049"}
+.tf-compass::before{content:"\e053"}
+.tf-dial::before{content:"\e048"}
+.tf-documents5::before{content:"\e006"}
+.tf-envelope2::before{content:"\e028"}
+.tf-genius::before{content:"\e046"}
+.tf-global::before{content:"\e052"}
+.tf-happy::before{content:"\e05b"}
+.tf-hotairballoon::before{content:"\e044"}
+.tf-ion-calculator::before{content:"\f26d"}
+.tf-ion-checkmark-circled::before{content:"\f120"}
+.tf-ion-close::before{content:"\f12a"}
+.tf-ion-ios-moon::before{content:"\f468"}
+.tf-ion-ios-sunny::before{content:"\f4b7"}
+.tf-ion-music-note::before{content:"\f20c"}
+.tf-ion-ribbon-b::before{content:"\f349"}
+.tf-ion-shuffle::before{content:"\f221"}
+.tf-ion-social-github::before{content:"\f233"}
+.tf-ion-stats-bars::before{content:"\f2b5"}
+.tf-lightbulb::before{content:"\e030"}
+.tf-linkedin::before{content:"\e062"}
+.tf-map2::before{content:"\e025"}
+.tf-pencil2::before{content:"\e032"}
+.tf-pricetags::before{content:"\e02f"}
+.tf-profile-male::before{content:"\e040"}
+.tf-puzzle::before{content:"\e026"}
+.tf-speedometer::before{content:"\e051"}
+.tf-tools-2::before{content:"\e034"}
