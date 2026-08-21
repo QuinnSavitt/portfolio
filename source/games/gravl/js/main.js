@@ -222,12 +222,13 @@ function fillMenu() {
   els.menuKicker.textContent = S.mode === "daily" ? "Gravl" : "Practice stage";
   els.menuTitle.textContent = (S.mode === "daily" ? "#" + st.number + " — " : "") + st.env.name.toUpperCase();
   els.menuSub.innerHTML = "<b>" + st.stageName + "</b> · " + st.kmText + " · " +
-    st.surfaceName + " · " + st.weather.label + " · AWD";
+    st.surfaceName + " · " + st.weather.label + " · " + st.tod.label + " · AWD";
   const expected = "≈ " + fmtTime(Math.round(st.estCasual)).replace(/\.\d+$/, "");
   els.menuFacts.innerHTML =
     fact("Length", st.kmText) +
     fact("Surface", st.surfaceName) +
     fact("Weather", st.weather.label) +
+    fact("Light", st.tod.label) +
     fact("Expected", expected);
   els.menuBlind.textContent = rec.blind != null ? fmtTime(rec.blind) : "—";
   els.menuBest.textContent = rec.best != null ? fmtTime(rec.best) : "—";

@@ -11,6 +11,7 @@
  */
 
 import { rng, hash32, hashCombine, daySeed } from "./daily.js";
+import { pickTimeOfDay, timeOfDayInfo } from "./daylight.js";
 
 export const DS = 2;            // metres between centreline samples
 export const G = 9.81;
@@ -1289,6 +1290,11 @@ export function generateStage(day, opts) {
   const wr = rng(hash32(baseSeed ^ 0x57454154));
   const weatherId = wr.weighted(env.weather).id;
   const weather = WEATHER_INFO[weatherId];
+  /* Drawn from its own stream inside pickTimeOfDay, so it cannot disturb any
+   * draw above it - see the note there. Purely cosmetic: nothing downstream
+   * of this feeds grip, the speed profile or the bot audition, so the stage
+   * a given day produces is identical with or without it. */
+  const timeOfDay = pickTimeOfDay(baseSeed, weatherId);
 
   let surfKey = env.surfKey;
   if (weather.wet && surfKey === "gravel") surfKey = "gravelWet";
@@ -1339,6 +1345,8 @@ export function generateStage(day, opts) {
     stage.number = day + 1;
     stage.weatherId = weatherId;
     stage.weather = weather;
+    stage.timeOfDay = timeOfDay;
+    stage.tod = timeOfDayInfo(timeOfDay);
     stage.surfKey = surfKey;
     stage.surfaceName = grip.name;
     stage.offroad = OFFROAD[env.id];

@@ -10,6 +10,7 @@
 import * as THREE from "three";
 import { DS } from "./track.js";
 import { CAR } from "./physics.js";
+import { applyDaylight, sunDirection } from "./daylight.js";
 
 /* Suspension travel, metres. The body is drawn on the spring and each wheel
  * is drawn on the ground under it; the gap between the two is the travel. */
@@ -97,14 +98,12 @@ function applyWeather(pal, stage) {
     out.skyHor = mix(pal.skyHor, 0xdde4e9, 0.5);
     out.fog = mix(pal.fog, 0xd6dee4, 0.6);
     out.sunInt = pal.sunInt * 0.6;
-  } else if (w === "sunset") {
-    out.skyTop = mix(pal.skyTop, 0x7a5f8e, 0.45);
-    out.skyHor = mix(pal.skyHor, 0xf2b56a, 0.55);
-    out.fog = mix(pal.fog, 0xe0b184, 0.45);
-    out.sun = 0xffca8a;
-    out.sunInt = pal.sunInt * 0.9;
-    out.sunLow = true;
   }
+  /* `sunset` used to be handled here as a weather condition. It is an hour,
+   * not a sky, so it now lives in daylight.js - a stage that draws sunset
+   * weather pins the time of day instead, and applyDaylight paints it. The id
+   * stays in the environment weather tables because removing it would change
+   * the weighted draw and reshuffle every published stage. */
   return out;
 }
 
@@ -186,7 +185,8 @@ function puffTexture() {
 
 export function buildWorld(stage, opts) {
   const quality = (opts && opts.quality) || "high";
-  const pal = applyWeather(PALETTES[stage.env.id], stage);
+  // environment -> weather -> hour; see daylight.js for why the hour goes last
+  const pal = applyDaylight(applyWeather(PALETTES[stage.env.id], stage), stage.timeOfDay);
   const r = cosmeticRng(stage.seed ^ 0xc05e71c);
 
   const scene = new THREE.Scene();
@@ -199,9 +199,15 @@ export function buildWorld(stage, opts) {
   const hemi = new THREE.HemisphereLight(pal.hemi, pal.hemiG, pal.hemiInt);
   scene.add(hemi);
   const sun = new THREE.DirectionalLight(pal.sun, pal.sunInt);
-  const sunDir = pal.sunLow ? new THREE.Vector3(-0.8, 0.35, 0.45) : new THREE.Vector3(-0.55, 0.85, 0.35);
-  sun.position.copy(sunDir.multiplyScalar(300));
+  const sd = sunDirection(stage.timeOfDay);
+  sun.position.set(sd.x, sd.y, sd.z).multiplyScalar(300);
   scene.add(sun);
+
+  /* At night the directional moon and the hemisphere between them leave the
+   * undersides of things completely black, which reads as holes rather than
+   * shadow on flat-shaded low-poly geometry. A small ambient floor lifts them
+   * back to legible. Daylight hours pass 0 here and get no extra light. */
+  if (pal.ambient > 0) scene.add(new THREE.AmbientLight(pal.sun, pal.ambient));
 
   // ---- sky dome
   {
@@ -233,6 +239,40 @@ export function buildWorld(stage, opts) {
     minY = Math.min(minY, geo.y[i]);
   }
   const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
+
+  /* ---- stars
+   *
+   * Only at night, and only above the horizon - a night sky with nothing in
+   * it reads as a rendering fault rather than as darkness. One Points object,
+   * no per-frame work. Positions come from the cosmetic RNG, so the same day
+   * gets the same sky. */
+  if (pal.stars > 0) {
+    const n = quality === "low" ? Math.floor(pal.stars * 0.45) : pal.stars;
+    const pos = new Float32Array(n * 3);
+    const R = 1480;                       // just inside the sky dome
+    for (let i = 0; i < n; i++) {
+      // bias towards the upper hemisphere: below the horizon they are hidden
+      // by terrain anyway, and spending them overhead looks denser
+      const u = r() * 2 - 1;
+      const y = Math.abs(u) * 0.92 + 0.06;
+      const ring = Math.sqrt(Math.max(0, 1 - y * y));
+      const a = r() * Math.PI * 2;
+      pos[i * 3] = cx + Math.cos(a) * ring * R;
+      pos[i * 3 + 1] = Math.max(minY, 0) + y * R;
+      pos[i * 3 + 2] = cz + Math.sin(a) * ring * R;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const stars = new THREE.Points(g, new THREE.PointsMaterial({
+      // sizeAttenuation off so distance does not shrink them to nothing; kept
+      // to a couple of pixels because an unmapped Point is a hard square and
+      // anything larger reads as confetti rather than a star
+      color: 0xdfe8ff, size: 2, sizeAttenuation: false,
+      transparent: true, opacity: 0.85, fog: false, depthWrite: false,
+    }));
+    stars.renderOrder = -9;               // after the dome, before everything
+    scene.add(stars);
+  }
 
   // ---- far ground disc + mountain ring
   {
@@ -613,8 +653,42 @@ export function buildWorld(stage, opts) {
 
   // ---- the car
   let ghostPitch = 0;
-  const { carGroup, wheels, bodyGroup } = buildCar(false);
+  const { carGroup, wheels, bodyGroup, pods } = buildCar(false);
   scene.add(carGroup);
+
+  /* ---- headlights
+   *
+   * Only when the hour needs them. Two spot lights rather than one so the
+   * beams splay either side of the nose and give the road some shape; shadows
+   * are left off, which is what keeps this affordable.
+   *
+   * Both the lights and their aim point are children of carGroup, so they
+   * inherit the car's transform and need no per-frame updates at all - a
+   * SpotLight only requires that its target be somewhere in the scene graph.
+   */
+  if (pal.headlights) {
+    const aim = new THREE.Object3D();
+    aim.position.set(34, -2.5, 0);          // well down the road, slightly low
+    carGroup.add(aim);
+
+    // Dimmer at dusk than at midnight: at sunset they read as running lights
+    // against a sky that is still bright, and cranking them up just blows out
+    // the road surface.
+    const night = stage.timeOfDay === "night";
+    const power = night ? 130 : 48;
+
+    for (const side of [0.62, -0.62]) {
+      const lamp = new THREE.SpotLight(0xfff2d0, power, night ? 92 : 55, 0.46, 0.45, 1.1);
+      lamp.position.set(2.25, 0.62, side);
+      lamp.target = aim;
+      carGroup.add(lamp);
+    }
+
+    /* The lamp lenses themselves are Lambert like the rest of the body, so
+     * they go dark exactly when they are supposed to look lit. Swap them for
+     * an unlit material so they read as emitting rather than reflecting. */
+    if (pods) pods.material = new THREE.MeshBasicMaterial({ color: night ? 0xfff6d8 : 0xffeeb8 });
+  }
   const ghost = buildCar(true);
   ghost.carGroup.visible = false;
   scene.add(ghost.carGroup);
@@ -642,7 +716,10 @@ export function buildWorld(stage, opts) {
     g.setAttribute("position", new THREE.BufferAttribute(dust.pos, 3));
     const isSnow = stage.env.id === "sweden";
     const isTarmac = stage.surfKey.indexOf("tarmac") === 0;
-    const col = isSnow ? 0xeef4f8 : isTarmac ? 0x8a8a88 : new THREE.Color(pal.road).multiplyScalar(1.06).getHex();
+    const base = isSnow ? 0xeef4f8 : isTarmac ? 0x8a8a88 : new THREE.Color(pal.road).multiplyScalar(1.06).getHex();
+    // Points ignore lights, so without this the dust stays at noon brightness
+    // and turns into glowing orbs after dark.
+    const col = new THREE.Color(base).multiplyScalar(pal.unlitDim).getHex();
     dust.points = new THREE.Points(g, new THREE.PointsMaterial({
       color: col, size: 0.85, map: puffTexture(), transparent: true, opacity: 0.4,
       depthWrite: false, sizeAttenuation: true,
@@ -669,7 +746,9 @@ export function buildWorld(stage, opts) {
       n: N, pos,
       snow,
       points: new THREE.Points(g, new THREE.PointsMaterial({
-        color: snow ? 0xffffff : 0x9fb4c8, size: snow ? 0.4 : 0.2,
+        // unlit, like the dust - dimmed to the hour for the same reason
+        color: new THREE.Color(snow ? 0xffffff : 0x9fb4c8).multiplyScalar(pal.unlitDim).getHex(),
+        size: snow ? 0.4 : 0.2,
         map: puffTexture(), transparent: true, opacity: snow ? 0.9 : 0.55, depthWrite: false,
       })),
     };
@@ -849,6 +928,7 @@ function buildCar(isGhost) {
   const pods = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.16, 1.0), mat(0xfff4c8));
   pods.position.set(2.32, 0.62, 0);
   bodyGroup.add(pods);
+  // returned so the world can light them up when the hour is dark
 
   /* Wheels: parent pivots so the fronts can steer and each corner can take
    * up its own suspension travel. They sit on the physics axles (CAR.a/CAR.b
@@ -876,5 +956,5 @@ function buildCar(isGhost) {
     wheels.push({ mesh: wheel, pivot, front, x: wx, z: wz, travel: 0 });
   }
 
-  return { carGroup, bodyGroup, wheels };
+  return { carGroup, bodyGroup, wheels, pods };
 }
