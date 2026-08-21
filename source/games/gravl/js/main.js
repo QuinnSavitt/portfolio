@@ -208,6 +208,9 @@ function applyQuality() {
 
 function showMenu() {
   S.state = "menu";
+  // Backing out mid-stage should cut the engine promptly, not fade it over the
+  // menu the way a finish does.
+  audio.engineStop(0.25);
   audio.stopSpeech();
   showScreen("menu");
   fillMenu();
@@ -307,6 +310,9 @@ function startRun(fromMenu) {
     records.bumpAttempts(S.day);
   }
   audio.stopSpeech();
+  // Telemetry is live again from here: the car idles on the line through the
+  // countdown. Also cancels a fade still running from the previous attempt.
+  audio.engineStart();
   resetCar(S.car, S.stage);
   S.recorder.reset();
   S.codriver.reset();
@@ -338,6 +344,10 @@ function finishRun() {
   // precise crossing time within the tick
   S.state = "finished";
   const time = S.finishTime;
+  // Physics stops here, so the engine has no telemetry left to track. Ride it
+  // down under the fanfare rather than leaving it holding the note it crossed
+  // the line on.
+  audio.engineStop(1.2);
   audio.finishFanfare();
   audio.speak("stage complete", false);
 

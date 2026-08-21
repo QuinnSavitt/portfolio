@@ -15,6 +15,11 @@ const state = {
   beds: null,
   voice: null,
   speaking: 0,
+  // Whether the car is being simulated. The engine and surface beds are
+  // continuous sources whose gains are only ever set from `update`, so once
+  // the frame loop stops feeding them fresh telemetry they hold their last
+  // value indefinitely - which is an engine note that never stops.
+  engineOn: false,
 };
 
 function makeNoiseBuffer(ctx, seconds) {
@@ -100,9 +105,60 @@ export function setVoiceMuted(m) {
 }
 export function isVoiceMuted() { return state.voiceMuted; }
 
+/* ------------------------------------------------------- engine on/off
+ *
+ * The engine, turbo and surface beds run permanently once init() builds the
+ * graph; only their gains move. `update` drives those gains from the car's
+ * telemetry every frame, but it is called from the render loop, which keeps
+ * running after the physics stops - at the finish, in the menu, on a restart.
+ * With the car frozen, `update` keeps writing the same non-zero gain from the
+ * same frozen rpm, so the engine drones on. These two functions bracket the
+ * period where telemetry is actually live.
+ */
+
+// Every gain that `update` drives continuously, and therefore every gain that
+// has to be wound down by hand when it stops driving them.
+function continuousGains() {
+  if (!state.engine || !state.beds) return [];
+  return [
+    state.engine.engGain.gain,
+    state.engine.turboG.gain,
+    state.beds.roll.g.gain,
+    state.beds.skid.g.gain,
+    state.beds.wind.g.gain,
+  ];
+}
+
+export function engineStart() {
+  state.engineOn = true;
+  if (!state.ctx) return;
+  const now = state.ctx.currentTime;
+  // Drop any fade still in flight, otherwise its ramp keeps pulling the gain
+  // back towards zero while update() is trying to raise it.
+  for (const g of continuousGains()) {
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+  }
+}
+
+export function engineStop(fade) {
+  // Set first: this stops update() writing gains, so the ramp below owns them.
+  state.engineOn = false;
+  if (!state.ctx) return;
+  const now = state.ctx.currentTime;
+  const dur = Math.max(0.05, fade == null ? 0.8 : fade);
+  for (const g of continuousGains()) {
+    // Pin the value the frame loop left behind before ramping, so the fade
+    // starts from what is actually being heard rather than jumping.
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(0, now + dur);
+  }
+}
+
 /* per-frame engine + surface update */
 export function update(car, stage, dt) {
-  if (!state.ctx || state.muted) return;
+  if (!state.ctx || state.muted || !state.engineOn) return;
   const e = state.engine;
   const now = state.ctx.currentTime;
 
