@@ -164,30 +164,3 @@
     color: $light;
   }
 }
-
-// "Featured" line under the tagline: straight links to the two biggest builds.
-.page-title.home .home-featured {
-  font-family: $open-sans;
-  font-size: 12px;
-  letter-spacing: 1.6px;
-  margin-top: -2px;
-  text-transform: uppercase;
-  span {
-    color: $text-color;
-    margin-right: 10px;
-  }
-  a {
-    border-bottom: 1px solid rgba($primary-color, 0.35);
-    color: $primary-color;
-    font-weight: 700;
-    &:hover,
-    &:focus {
-      border-bottom-color: $primary-color;
-    }
-  }
-  i {
-    color: $text-color;
-    font-style: normal;
-    margin: 0 10px;
-  }
-}

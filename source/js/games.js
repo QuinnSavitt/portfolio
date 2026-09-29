@@ -9,6 +9,7 @@
       url     page to open, or null while it is still being built
       daily   true if there is a fresh puzzle every day
       live    false renders a "coming soon" card with the play button off
+      featured  true gives the card a little more weight (and a badge)
 -------------------------------------------------*/
 (function () {
     "use strict";
@@ -41,7 +42,8 @@
             icon: "tf-compass",
             url: "games/overcrest/index.html",
             daily: false,
-            live: true
+            live: true,
+            featured: true
         },
         {
             id: "archipelago",
@@ -50,7 +52,8 @@
             icon: "tf-map2",
             url: "games/archipelago/index.html",
             daily: false,
-            live: true
+            live: true,
+            featured: true
         }
     ];
 
@@ -121,6 +124,9 @@
         var badges = "";
         var action;
 
+        if (game.featured) {
+            badges += "<span class=\"game-badge featured\">Featured</span>";
+        }
         if (game.daily) {
             badges += "<span class=\"game-badge daily\">Daily</span>";
         }
@@ -138,7 +144,7 @@
         }
 
         return "<div class=\"col-xs-12 col-sm-6 col-md-3\">" +
-            "<div class=\"game-item\">" +
+            "<div class=\"game-item" + (game.featured ? " featured" : "") + "\">" +
             "<span class=\"game-hex\"><i class=\"" + game.icon + "\"></i></span>" +
             "<h4>" + game.title + "</h4>" +
             "<p class=\"game-tagline\">" + game.tagline + "</p>" +

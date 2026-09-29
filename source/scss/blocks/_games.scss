@@ -205,6 +205,18 @@
     color: #7fc6a1;
     line-height: 18px;
   }
+  &.featured {
+    background-color: transparent;
+    border: 1px solid $primary-color;
+    color: $primary-color;
+    line-height: 18px;
+  }
+}
+
+// Featured games carry a little more weight: a coral top rule and ring.
+.game-item.featured {
+  border-top: 3px solid $primary-color;
+  box-shadow: 0 0 0 1px rgba($primary-color, 0.45), 0 12px 30px rgba(12, 15, 21, 0.25);
 }
 
 .game-play {

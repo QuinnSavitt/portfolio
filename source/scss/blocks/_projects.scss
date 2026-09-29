@@ -132,225 +132,54 @@
   }
 }
 
-// Featured: the two biggest builds, full width above the grid. A wide card with
-// a screenshot on one side and the pitch on the other; the second card flips so
-// the pair reads as a spread. Below 992px they stack, picture first.
-.featured {
-  margin-bottom: 20px;
-}
+// Spotlight: the two headline projects lead the grid with a little more
+// weight - a screenshot that fills the tile, a coral accent and a tag -
+// while staying the same size as their neighbours.
+.project-item.spotlight {
+  border-top: 3px solid $primary-color;
+  box-shadow: 0 0 0 1px rgba($primary-color, 0.45), 0 14px 34px rgba(12, 15, 21, 0.28);
 
-.featured-heading {
-  color: $primary-color;
-  font-family: $open-sans;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  margin: 0 0 24px;
-  text-transform: uppercase;
-  span {
-    display: inline-block;
-    padding: 0 18px;
-    position: relative;
-    &::before,
-    &::after {
-      background-color: rgba($primary-color, 0.45);
-      content: "";
-      height: 1px;
-      position: absolute;
-      top: 50%;
-      width: 64px;
+  // Screenshots fill the tile (the other thumbnails are logos, contained).
+  .project-thumb.shot {
+    height: 210px;
+    img {
+      height: 100%;
+      max-height: none;
+      max-width: none;
+      object-fit: cover;
+      width: 100%;
     }
-    &::before {
-      right: 100%;
-    }
-    &::after {
-      left: 100%;
+    @media only screen and (max-width: 767px) {
+      height: 180px;
     }
   }
-  &.more-heading {
-    margin: 16px 0 22px;
-  }
-}
 
-.feature-card {
-  background-color: $light-dark;
-  box-shadow: 0 18px 44px rgba(12, 15, 21, 0.22);
-  display: flex;
-  font-family: $open-sans;
-  margin-bottom: 34px;
-  overflow: hidden;
-  text-align: left;
-  &.flip {
-    flex-direction: row-reverse;
-  }
-  @media only screen and (max-width: 991px) {
-    &,
-    &.flip {
-      flex-direction: column;
-    }
-  }
-}
-
-.feature-media {
-  background-color: #111722;
-  display: block;
-  flex: 0 0 56%;
-  min-height: 320px;
-  overflow: hidden;
-  position: relative;
-  > img:first-child {
-    display: block;
-    height: 100%;
-    object-fit: cover;
-    width: 100%;
-    @include transition(transform 0.6s ease 0s);
-  }
-  &:hover > img:first-child,
-  &:focus > img:first-child {
-    @include transform(scale(1.035));
-  }
-  // A close-up laid over the wide shot, picture-in-picture.
-  .feature-inset {
-    border: 3px solid #fff;
-    border-radius: 2px;
-    bottom: 18px;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
-    height: auto;
-    position: absolute;
-    right: 18px;
-    width: 40%;
-  }
-  .feature-play {
+  .spot-tag {
     background-color: $primary-color;
     color: $light;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    left: 18px;
+    left: 12px;
     letter-spacing: 1.5px;
-    line-height: 28px;
-    padding: 0 14px 0 28px;
+    line-height: 22px;
+    padding: 0 10px;
     position: absolute;
     text-transform: uppercase;
-    top: 18px;
-    @include transition(all 0.3s ease 0s);
-    &::before {
-      border-bottom: 5px solid transparent;
-      border-left: 8px solid $light;
-      border-top: 5px solid transparent;
-      content: "";
-      left: 13px;
-      position: absolute;
-      top: 9px;
-    }
-  }
-  &:hover .feature-play,
-  &:focus .feature-play {
-    padding-right: 20px;
-  }
-  @media only screen and (max-width: 991px) {
-    flex-basis: auto;
-    min-height: 0;
-    > img:first-child {
-      height: auto;
-    }
-  }
-}
-
-.feature-body {
-  flex: 1 1 auto;
-  padding: 30px 34px 28px;
-  @media only screen and (max-width: 767px) {
-    padding: 22px 20px 20px;
+    top: 12px;
   }
 
-  .feature-kicker {
-    color: $primary-color;
-    display: block;
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    margin-bottom: 6px;
-    text-transform: uppercase;
+  .project-desc {
+    color: #bcc3cf;
   }
 
-  h3 {
-    color: $light;
-    font-family: $open-sans;
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    margin: 0 0 12px;
-    text-transform: uppercase;
-    a {
-      color: inherit;
-      &:hover,
-      &:focus {
-        color: $primary-color;
-      }
-    }
-  }
-
-  .feature-lede {
-    color: #c9cfda;
-    font-size: 14px;
-    line-height: 24px;
-    margin-bottom: 16px;
-  }
-
-  .feature-points {
-    list-style: none;
-    margin: 0 0 16px;
-    padding: 0;
-    li {
-      color: #a3abb8;
-      font-size: 13px;
-      line-height: 21px;
-      margin-bottom: 8px;
-      padding-left: 17px;
-      position: relative;
-      &::before {
-        background-color: $primary-color;
-        content: "";
-        height: 6px;
-        left: 1px;
-        position: absolute;
-        top: 8px;
-        width: 6px;
-        @include transform(rotate(45deg));
-      }
-    }
-    b {
-      color: #eef1f6;
-      font-weight: 600;
-    }
-  }
-
-  .project-tags {
-    margin-bottom: 6px;
-  }
-
-  .feature-links {
-    margin-top: 10px;
-    a {
-      border: 1px solid rgba($light, 0.25);
-      color: $light;
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.2px;
-      line-height: 34px;
-      margin: 0 6px 6px 0;
-      padding: 0 20px;
-      text-transform: uppercase;
-      &.primary {
-        background-color: $primary-color;
-        border-color: $primary-color;
-      }
-      &:hover,
-      &:focus {
-        background-color: $light;
-        border-color: $light;
-        color: $light-dark;
-      }
+  .project-links a.primary {
+    background-color: $primary-color;
+    border-color: $primary-color;
+    &:hover,
+    &:focus {
+      background-color: $light;
+      border-color: $light;
+      color: $light-dark;
     }
   }
 }

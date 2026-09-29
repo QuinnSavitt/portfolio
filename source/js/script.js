@@ -94,6 +94,13 @@
 			percentPosition: true
 		});
 
+		// Card heights are measured at init, before the web fonts (and some
+		// images) arrive; once they do, the text reflows taller and the cards
+		// below would ride up into them. Measure again when everything is in.
+		var relayout = function () { iso.layout(); };
+		if (document.fonts && document.fonts.ready) { document.fonts.ready.then(relayout); }
+		window.addEventListener("load", relayout);
+
 		var filters = document.querySelectorAll(".filter a");
 
 		Array.prototype.forEach.call(filters, function (link) {
