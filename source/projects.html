@@ -16,8 +16,84 @@
           </div>
         </div> <!-- /.row -->
 
+        <!-- Featured: the two biggest builds get the full width, above the grid.
+             Both run right here on the site. -->
+        <section class="featured" id="featured" aria-labelledby="featured-title">
+          <div class="row">
+            <div class="col-xs-12 text-center">
+              <h3 class="featured-heading" id="featured-title"><span>Featured</span></h3>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-xs-12">
+
+              <!-- Overcrest -->
+              <article class="feature-card">
+                <a href="games/overcrest/index.html" class="feature-media" aria-label="Play Overcrest">
+                  <img src="images/works/overcrest.jpg" alt="Overcrest: a rally car at night under the aurora, pace-note cards reading flat right, three right, four left" width="1200" height="630" decoding="async">
+                  <span class="feature-play">Play</span>
+                </a>
+                <div class="feature-body">
+                  <span class="feature-kicker">Browser game &middot; Engine from scratch</span>
+                  <h3><a href="games/overcrest/index.html">Overcrest</a></h3>
+                  <p class="feature-lede">An endless rally roguelike. A road that never ends, through twelve countries and one place that is not a country; a codriver who calls every corner; waystations where the car becomes something stranger. Everything under it is hand-built: physics, road generator, terrain, audio and music.</p>
+                  <ul class="feature-points">
+                    <li><b>A four-corner physics engine</b> with per-wheel loads, a tyre law per surface and real suspension, regression-tested by a robot driver against the speeds the car promises.</li>
+                    <li><b>Pace notes are a contract.</b> Corners are sized from the car's own gearbox, so &ldquo;three right&rdquo; means the same thing on gravel, snow or ice.</li>
+                    <li><b>The world is one analytic function</b> of the road: tunnels, bridges, dam crossings and overpasses emerge from the terrain field. 23 named special events.</li>
+                    <li><b>An adaptive soundtrack</b> arranged live in song form, 139 achievements, and shareable seeds: the same seed is the same journey, forever.</li>
+                  </ul>
+                  <div class="project-tags">
+                    <span class="tag-chip">JavaScript</span>
+                    <span class="tag-chip">Three.js</span>
+                    <span class="tag-chip">Physics</span>
+                    <span class="tag-chip">Procedural Generation</span>
+                    <span class="tag-chip">Web Audio</span>
+                  </div>
+                  <div class="feature-links">
+                    <a href="games/overcrest/index.html" class="primary">Play Overcrest</a>
+                  </div>
+                </div>
+              </article>
+
+              <!-- Archipelago -->
+              <article class="feature-card flip">
+                <a href="games/archipelago/index.html" class="feature-media" aria-label="Open Archipelago">
+                  <img src="images/works/archipelago.jpg" alt="Archipelago: a continent of hex-tile nations, each one a running program: FizzBuzz Market, Prime Sieve, Three-Town Grain Trade, Signal Keep" width="1200" height="720" loading="lazy" decoding="async">
+                  <img class="feature-inset" src="images/works/archipelago-detail.jpg" alt="Close-up: carts carrying the numbers 21 to 26 along a road through the checkpoints By 3? and By 5?" width="720" height="450" loading="lazy" decoding="async">
+                  <span class="feature-play">Play</span>
+                </a>
+                <div class="feature-body">
+                  <span class="feature-kicker">Programming language &middot; Puzzle campaigns</span>
+                  <h3><a href="games/archipelago/index.html">Archipelago</a></h3>
+                  <p class="feature-lede">A programming language you build as a civilization. Buildings are operations, roads carry values, whole islands are functions. Press Play and the civilization <i>is</i> the running program: carts carry numbers between workshops, lists travel as trains, and checkpoints are if-statements you can watch decide.</p>
+                  <ul class="feature-points">
+                    <li><b>Time is distance.</b> A value moves one hex per turn, so every run is deterministic, and you can rewind it: drag the timeline and the whole civilization travels back in time.</li>
+                    <li><b>Tagged-token dataflow</b>, the model of the MIT dataflow machines reinvented as railway logistics: every carriage of a list finds its place again, however long its journey.</li>
+                    <li><b>Four campaigns, 170 puzzles</b>, from laying a single road to an ALU built from NAND gates, interview-style algorithms and a Mandelbrot set on a pixel display. Every level ships with a reference solution the test suite runs.</li>
+                    <li><b>From scratch in TypeScript:</b> engine, compiler, canvas renderer and editor, with a five-minute tutorial for first-timers.</li>
+                  </ul>
+                  <div class="project-tags">
+                    <span class="tag-chip">TypeScript</span>
+                    <span class="tag-chip">Canvas</span>
+                    <span class="tag-chip">Language Design</span>
+                    <span class="tag-chip">Dataflow</span>
+                    <span class="tag-chip">Preact</span>
+                  </div>
+                  <div class="feature-links">
+                    <a href="games/archipelago/index.html" class="primary">Play Archipelago</a>
+                  </div>
+                </div>
+              </article>
+
+            </div>
+          </div>
+        </section>
+
         <div class="row">
           <div class="col-xs-12 text-center">
+            <h3 class="featured-heading more-heading"><span>More projects</span></h3>
             <ul class="filter projects-filter">
               <li><a href="#" class="link active" data-filter="*">All</a></li>
               <li><a href="#" class="link" data-filter=".lang">Languages &amp; Tools</a></li>

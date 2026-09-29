@@ -33,6 +33,24 @@
             url: "games/gravl/index.html",
             daily: true,
             live: true
+        },
+        {
+            id: "overcrest",
+            title: "Overcrest",
+            tagline: "An endless rally roguelike. A road that never ends, a codriver you learn to trust, waystations where the car becomes something stranger. One more waystation.",
+            icon: "tf-compass",
+            url: "games/overcrest/index.html",
+            daily: false,
+            live: true
+        },
+        {
+            id: "archipelago",
+            title: "Archipelago",
+            tagline: "A programming language you build as a civilization. Roads carry values, islands are functions, and 170 puzzles run from laying one road to an ALU made of NAND gates.",
+            icon: "tf-map2",
+            url: "games/archipelago/index.html",
+            daily: false,
+            live: true
         }
     ];
 

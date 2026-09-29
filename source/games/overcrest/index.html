@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Overcrest</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="An endless rally roguelike. One more waystation. Drive a procedurally composed world that never ends, shape your car with strange souvenirs, and go see what's past the next crest.">
+<meta name="theme-color" content="#0d1412">
+<meta property="og:title" content="Overcrest">
+<meta property="og:description" content="An endless rally roguelike. One more waystation.">
+<meta property="og:url" content="https://quinnsavitt.com/games/overcrest/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://quinnsavitt.com/games/overcrest/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Overcrest">
+<meta name="twitter:description" content="An endless rally roguelike. One more waystation.">
+<meta name="twitter:image" content="https://quinnsavitt.com/games/overcrest/og.jpg">
+<link rel="icon" href="../../images/favicon.png" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400;1,500&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+/* ==========================================================================
+ * Overcrest UI — the night dash and the roadbook.
+ *
+ * One identity, two materials. While you DRIVE, everything is an instrument:
+ * amber on deep pine, tall condensed numerals, hairline gauges — the glow of
+ * a dashboard at night. When you STOP, the dome light comes on and you read
+ * PAPER: the waystation sheet, the summary, the postcards are pages from the
+ * journey's roadbook — cream stock, punched holes, typewritten data, control
+ * stamps, tulip diagrams in ink. The codriver's literary voice gets a serif;
+ * the officialdom of rally paperwork gets a typewriter; the instruments get
+ * the condensed plate lettering. Nothing here is shared with the portfolio.
+ * ======================================================================== */
+:root {
+  /* the night cab */
+  --night: #0d1412;
+  --dash: #141b17;
+  --dash-2: #1b2520;
+  --edge: #2b3b33;
+  --edge-hi: #3d5348;
+  --amber: #ffb454;         /* headlights at dusk */
+  --amber-deep: #c98632;
+  --frost: #8fb5ac;         /* cold-morning teal */
+  --text: #d8ded9;
+  --faded: #7d8f88;
+  --white: #f4f7f4;
+  --danger: #e06a5a;
+  --ok: #8fc98b;
+  /* the roadbook */
+  --paper: #ede4cf;
+  --paper-2: #e3d8bd;
+  --paper-edge: #b9a883;
+  --ink: #2b2418;
+  --ink-soft: #5c5240;
+  --ink-faint: #8a7d64;
+  --stamp: #a8402f;         /* the control stamp's red */
+  --pine-ink: #2e5d43;
+  /* type roles */
+  --disp: "Saira Condensed", "Arial Narrow", sans-serif;  /* plates & instruments */
+  --type: "Courier Prime", "Courier New", monospace;      /* rally paperwork */
+  --prose: "Lora", Georgia, serif;                        /* the literary voice */
+  --body: system-ui, "Segoe UI", sans-serif;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.055 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%; overflow: hidden;
+  background: var(--night); color: var(--text);
+  font-family: var(--body); font-size: 14px;
+}
+button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+h1, h2, h3 { margin: 0; font-family: var(--disp); color: var(--white); }
+
+#gl { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
+
+/* -------------------------------------------------- screens & materials */
+.screen {
+  position: fixed; inset: 0; display: none; z-index: 20;
+  align-items: center; justify-content: center;
+  background:
+    radial-gradient(130% 95% at 50% 118%, rgba(255, 180, 84, 0.07), transparent 55%),
+    rgba(6, 10, 9, 0.72);
+  backdrop-filter: blur(5px);
+}
+.screen.on { display: flex; }
+.sheet {
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  position: relative;
+  padding: 30px 34px;
+  scrollbar-width: thin;
+}
+.sheet.night { scrollbar-color: var(--edge-hi) transparent; }
+/* NIGHT: the instrument bezel. A hairline case, an amber filament along the top. */
+.sheet.night {
+  background:
+    var(--grain),
+    linear-gradient(90deg, transparent 6%, var(--amber) 30%, var(--amber) 70%, transparent 94%) top/100% 2px no-repeat,
+    linear-gradient(168deg, var(--dash-2), var(--dash) 55%, #111814);
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+/* PAPER: a roadbook page in the dome light. Punched holes along the top,
+ * grain in the stock, a red ledger rule where a header wants one. */
+.sheet.paper {
+  color: var(--ink);
+  background:
+    var(--grain),
+    radial-gradient(circle at 13px 15px, rgba(24, 19, 11, 0.5) 3.2px, rgba(24, 19, 11, 0) 4.6px) 8px 0 / 27px 31px repeat-x,
+    linear-gradient(172deg, #f2e9d5, var(--paper) 45%, var(--paper-2));
+  border: 1px solid var(--paper-edge);
+  border-radius: 3px;
+  padding-top: 40px;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.65), 0 0 90px rgba(255, 180, 84, 0.10);
+  scrollbar-color: var(--paper-edge) transparent;
+}
+.sheet.paper h1, .sheet.paper h2, .sheet.paper h3 { color: var(--ink); }
+
+.overline {
+  font-family: var(--disp); font-size: 12px; letter-spacing: 3.2px;
+  color: var(--amber); text-transform: uppercase; font-weight: 600;
+}
+.paper .overline { font-family: var(--type); font-weight: 700; font-size: 11px; letter-spacing: 2.6px; color: var(--ink-soft); }
+
+/* buttons: control plates. The primary is the rally plate itself —
+ * amber stock, near-black lettering, a plate's own dark rim. */
+.btn {
+  display: inline-block; border: 1px solid var(--edge-hi); border-radius: 3px;
+  padding: 0 22px; line-height: 44px; font-size: 14px; font-weight: 700;
+  letter-spacing: 2.4px; text-transform: uppercase; color: var(--white);
+  background: rgba(255, 255, 255, 0.03); text-align: center; text-decoration: none;
+  font-family: var(--disp);
+}
+.btn:hover { border-color: var(--amber-deep); color: var(--amber); }
+.btn:active { transform: translateY(1px); }
+.btn.primary {
+  background: linear-gradient(178deg, #ffc06a, var(--amber) 60%, #f0a441);
+  border: 2px solid #241703; color: #241703; line-height: 42px;
+  box-shadow: inset 0 0 0 1px rgba(255, 235, 200, 0.5);
+}
+.btn.primary:hover { filter: brightness(1.06); color: #241703; }
+.btn.quiet { background: transparent; border-color: transparent; color: var(--faded); }
+.btn.quiet:hover { color: var(--text); border-color: var(--edge); }
+.btn.wide { display: block; width: 100%; }
+.paper .btn { border: 1.5px solid var(--ink); color: var(--ink); background: transparent; }
+.paper .btn:hover { background: rgba(43, 36, 24, 0.06); color: var(--ink); border-color: var(--ink); }
+.paper .btn.primary { background: linear-gradient(178deg, #ffc06a, var(--amber) 60%, #f0a441); border: 2px solid #241703; color: #241703; }
+.paper .btn.quiet { border-color: transparent; color: var(--ink-faint); }
+.paper .btn.quiet:hover { color: var(--ink-soft); background: transparent; }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; }
+
+/* the crest mark: the pace-note glyph for "over crest" — a road, a blind
+ * hump, the dashes of the tarmac you can't see yet. The game's own sign. */
+.crest { display: block; margin: 0 auto; width: 118px; height: 44px; color: var(--amber); }
+.crest.small { width: 86px; height: 32px; }
+
+/* the sticker: a plate slapped on the corner of the sheet */
+.plate-sticker {
+  position: absolute; top: -9px; left: 30px; transform: rotate(-2.4deg);
+  font-family: var(--disp); font-weight: 700; font-size: 11.5px; letter-spacing: 2.6px;
+  color: #241703; background: linear-gradient(178deg, #ffc06a, var(--amber));
+  border: 1.6px solid #241703; border-radius: 2px; padding: 4px 10px 3px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+}
+
+/* a control stamp: inked, slightly crooked, official */
+.stamp {
+  display: inline-block; transform: rotate(-2deg);
+  font-family: var(--type); font-weight: 700; font-size: 11px; letter-spacing: 2.2px;
+  text-transform: uppercase; color: var(--stamp);
+  border: 2px solid var(--stamp); border-radius: 3px; padding: 3px 9px 2px;
+  opacity: 0.82; mix-blend-mode: multiply;
+}
+
+#loading .sheet { text-align: center; }
+#loadMarque { font-family: var(--disp); font-weight: 700; font-size: 19px; letter-spacing: 6px; color: var(--white); margin-top: 10px; }
+.roadline {
+  margin: 20px auto 12px; width: 180px; height: 4px; position: relative;
+  background: var(--edge); overflow: hidden; border-radius: 2px;
+}
+.roadline::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 44px;
+  background: var(--amber); animation: dash 1.1s linear infinite;
+}
+@keyframes dash { from { left: -44px; } to { left: 180px; } }
+#loadStatus { font-family: var(--type); font-style: italic; font-size: 12px; color: var(--faded); }
+
+/* survival surfaces: the GL hiccup toast, the crash sheet, the device gate */
+#glNotice {
+  top: 14px; left: 50%; transform: translateX(-50%);
+  font-family: var(--type); font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--frost); background: rgba(12, 14, 16, 0.85); padding: 6px 14px;
+  border: 1px solid var(--edge); border-radius: 3px; display: none;
+}
+#glNotice.on { display: block; }
+#catDetail {
+  font: 11px/1.5 var(--type); color: var(--faded);
+  background: rgba(0, 0, 0, 0.35); border: 1px solid var(--edge); border-radius: 3px;
+  padding: 10px 12px; margin: 0; max-height: 160px; overflow: auto;
+  white-space: pre-wrap; word-break: break-all; text-align: left; user-select: text;
+}
+#wrongDevice, #catastrophe { z-index: 60; }
+
+/* ---------------------------------------------------------------- title
+ * THE STAGE START. The world is the title: the attract drive runs
+ * unblurred with the pace-note chips ticking over it, and the game's own
+ * sign — the "over crest" glyph — is drawn the width of the screen as
+ * the road itself: solid under the name, over the hump, then the dashes
+ * of tarmac you cannot see yet, running off the right edge. Identity on
+ * the left; the paperwork on the right — a TIME CARD (paper, the stopped
+ * material) to write a seed on, and the plates. Everything else is sky. */
+#title {
+  display: none; backdrop-filter: none;
+  background:
+    radial-gradient(52% 44% at 6% 100%, rgba(255, 180, 84, 0.14), transparent 70%),
+    linear-gradient(to top, rgba(6, 10, 9, 0.9) 0%, rgba(6, 10, 9, 0.62) 20%, rgba(6, 10, 9, 0.18) 44%, transparent 60%),
+    linear-gradient(to bottom, rgba(6, 10, 9, 0.42), transparent 16%);
+}
+#title.on { display: block; }
+@keyframes t-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes t-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* top-left: what the car behind the title is really doing */
+.t-live {
+  position: absolute; left: 24px; top: 20px; padding: 7px 13px 6px;
+  font-family: var(--type); font-size: 11px; letter-spacing: 2.2px; text-transform: uppercase;
+  color: var(--frost); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.75);
+  background: rgba(6, 10, 9, 0.5); border-radius: 3px; backdrop-filter: blur(3px);
+  animation: t-rise 0.7s 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.t-live i {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin: 0 10px 1px 0;
+  background: var(--amber); box-shadow: 0 0 9px var(--amber); animation: t-blink 2.6s ease-in-out infinite;
+}
+.t-live b { color: var(--white); font-weight: 700; }
+
+/* the road row: name, hump, dashes */
+.t-mark {
+  position: absolute; left: 0; right: 0; bottom: 96px;
+  display: flex; align-items: flex-end; color: var(--amber);
+  animation: t-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.t-name { position: relative; padding: 14px 12px 10px 34px; border-bottom: 3px solid var(--amber); }
+.t-name .plate-sticker { top: 0; left: 40px; }
+.marque {
+  font-family: var(--disp); font-size: clamp(56px, 8.8vw, 126px); font-weight: 700; letter-spacing: 2px;
+  color: var(--white); text-transform: uppercase; line-height: 0.86; margin: 0;
+  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 180, 84, 0.12);
+}
+.marque em { font-style: normal; color: var(--amber); }
+.t-hump { flex: none; width: 132px; height: 44px; display: block; overflow: visible; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5)); }
+.t-dashwrap { flex: 1; position: relative; height: 3px; align-self: flex-end; }
+.t-dashwrap::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: repeating-linear-gradient(90deg, var(--amber) 0 9px, transparent 9px 22px);
+  opacity: 0.6;
+  -webkit-mask-image: linear-gradient(90deg, #000 30%, transparent 96%);
+  mask-image: linear-gradient(90deg, #000 30%, transparent 96%);
+}
+
+/* the paperwork column */
+.t-side {
+  position: absolute; right: 34px; bottom: 124px; width: min(360px, calc(100vw - 68px));
+  display: flex; flex-direction: column; gap: 9px;
+  animation: t-rise 0.8s 0.12s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.timecard {
+  position: relative; color: var(--ink); padding: 14px 16px 12px;
+  background:
+    var(--grain),
+    radial-gradient(circle at 11px 13px, rgba(24, 19, 11, 0.5) 3px, rgba(24, 19, 11, 0) 4.4px) 6px 0 / 25px 28px repeat-x,
+    linear-gradient(172deg, #f2e9d5, var(--paper) 45%, var(--paper-2));
+  border: 1px solid var(--paper-edge); border-radius: 3px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 60px rgba(255, 180, 84, 0.08);
+  transform: rotate(-1.1deg); margin-bottom: 4px;
+}
+.tc-head { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.tc-title { font-family: var(--type); font-weight: 700; font-size: 11px; letter-spacing: 2.6px; text-transform: uppercase; color: var(--ink-soft); }
+.tc-row { display: flex; align-items: baseline; gap: 12px; margin-top: 10px; border-bottom: 1.5px dashed var(--ink-faint); padding-bottom: 4px; }
+.tc-row label { font-family: var(--type); font-weight: 700; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-soft); }
+#seedInput {
+  flex: 1; min-width: 0; background: transparent; border: 0; outline: none;
+  color: var(--stamp); font-family: var(--type); font-weight: 700; font-size: 14px;
+  letter-spacing: 2.4px; text-transform: uppercase; padding: 2px 0;
+}
+#seedInput::placeholder { color: var(--ink-faint); text-transform: none; letter-spacing: 0.3px; font-weight: 400; font-style: italic; }
+.tc-foot { margin-top: 7px; font-family: var(--prose); font-style: italic; font-size: 11.5px; color: var(--ink-faint); }
+/* the two modes, equal plates (owner: the Sweep is not a side mode) */
+.t-modes { display: flex; gap: 8px; }
+.t-mode { flex: 1; padding: 0 8px; line-height: 44px; font-size: 15px; letter-spacing: 3px; white-space: nowrap; }
+#btnResume { font-size: 12px; line-height: 1.35; padding: 10px 14px; letter-spacing: 2px; white-space: normal; }
+.t-row { display: flex; gap: 8px; }
+.btn.small {
+  flex: 1; line-height: 1.25; padding: 9px 10px; font-size: 11px; letter-spacing: 1.6px; white-space: normal;
+}
+
+/* the legend, printed small under the road */
+.keysheet {
+  position: absolute; left: 34px; bottom: 30px; right: 34px;
+  font-size: 11.5px; color: var(--faded); line-height: 2.1; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  animation: t-rise 0.8s 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.keysheet b {
+  color: var(--text); font-family: var(--type); font-weight: 700; font-size: 11px;
+  background: var(--dash-2); border: 1px solid var(--edge); border-bottom-width: 3px;
+  border-radius: 3px; padding: 2px 7px; letter-spacing: 0;
+}
+.t-credit {
+  position: absolute; right: 34px; bottom: 32px; font-family: var(--type); font-size: 10.5px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--faded); opacity: 0.8;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-live, .t-mark, .t-side, .keysheet, .t-live i { animation: none; }
+}
+/* a small window: the column drops under the road and everything flows */
+@media (max-width: 980px), (max-height: 600px) {
+  #title { overflow-y: auto; padding-top: 18px; }
+  /* bottom-aligned while there is room; scrollable from the top when not
+   * (flex-end would push the overflow above the viewport, unreachable) */
+  #title.on { display: flex; flex-direction: column; justify-content: flex-start; }
+  .t-live, .t-mark, .t-side, .keysheet, .t-credit { position: static; }
+  .t-live { margin: auto 24px 0; align-self: flex-start; }
+  .t-mark { margin-top: 14px; }
+  .tc-foot { display: none; }
+  .marque { font-size: clamp(40px, 8vw, 72px); }
+  .t-hump { width: 96px; height: 32px; }
+  .t-side { width: auto; margin: 18px 24px 0; }
+  .keysheet { margin: 12px 24px 18px; }
+  .keysheet br, .keysheet .ks-alt { display: none; }
+  .t-credit { display: none; }
+}
+
+/* ----------------------------------------------------------------- HUD */
+.hud { position: fixed; z-index: 10; pointer-events: none; user-select: none; }
+/* the letterbox: two bars that slide in for a camera cut (body.cut) */
+#letterbox { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
+#letterbox i { position: absolute; left: 0; right: 0; height: 0; background: #06080a; transition: height 0.28s ease; }
+#letterbox i:first-child { top: 0; }
+#letterbox i:last-child { bottom: 0; }
+body.cut #letterbox i { height: 7.5vh; }
+body.attract #letterbox i { height: 0 !important; }
+
+#speedo { right: 28px; bottom: 24px; text-align: right; font-family: var(--disp); }
+#speedVal {
+  font-size: 60px; font-weight: 700; color: var(--white); line-height: 0.92;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+}
+#speedUnit {
+  font-size: 10px; color: var(--frost); letter-spacing: 3px; margin-top: 3px;
+  padding-top: 4px;
+  background:
+    repeating-linear-gradient(90deg, rgba(143, 181, 172, 0.55) 0 1px, transparent 1px 9px) top right/108px 3px no-repeat,
+    linear-gradient(rgba(143, 181, 172, 0.35), rgba(143, 181, 172, 0.35)) top right/108px 1px no-repeat;
+}
+#gearVal { font-size: 16px; color: var(--amber); font-weight: 700; margin-top: 4px; letter-spacing: 2px; }
+#clockHud { display: none; font-size: 13px; color: var(--faded); font-weight: 600; margin-top: 5px; letter-spacing: 2.5px; }
+
+/* pace-note chips: cells from the roadbook — paper stock, ink lettering,
+ * the gear-grade colour worn as the cell's printed band, not its whole body */
+#noteStrip {
+  top: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 9px; align-items: flex-start;
+}
+.call {
+  --g: #b9ab8c;
+  min-width: 60px; padding: 9px 12px 7px; text-align: center;
+  font-family: var(--disp); font-weight: 700; font-size: 20px; line-height: 1;
+  color: var(--ink); background: linear-gradient(178deg, #f0e7d3, #e6dbc0);
+  border: 1px solid rgba(43, 36, 24, 0.55); border-top: 5px solid var(--g);
+  border-radius: 3px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+.call small {
+  display: block; margin-top: 4px; font-family: var(--type); font-size: 9.5px;
+  font-weight: 700; letter-spacing: 1.2px; opacity: 0.62;
+}
+.call.far { opacity: 0.55; transform: scale(0.84); transform-origin: top center; }
+
+/* the codriver's line: a caption you can read at 140 km/h. Upright sans,
+ * a touch of weight, no italics (owner note: the italic serif was hard to
+ * read at a glance, and a pace note has to be read at a glance) */
+#subtitle {
+  bottom: 104px; left: 50%; transform: translateX(-50%);
+  font-family: var(--body); font-style: normal; font-weight: 500; font-size: 17px;
+  letter-spacing: 0.15px; line-height: 1.35; color: var(--white);
+  background: rgba(10, 15, 13, 0.62); border-left: 3px solid var(--amber);
+  border-radius: 0 3px 3px 0;
+  padding: 7px 18px 8px; max-width: 70vw; text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); display: none;
+}
+#subtitle.on { display: block; }
+
+#hudMsg {
+  top: 92px; left: 50%; transform: translateX(-50%);
+  font-family: var(--disp); font-size: 14px; letter-spacing: 3.6px;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--white); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65); opacity: 0;
+  transition: opacity 0.45s;
+}
+#hudMsg.on { opacity: 1; }
+
+/* meters: flow pips, boost, condition — bottom left, instruments, quiet */
+#meters { left: 26px; bottom: 26px; display: flex; flex-direction: column; gap: 7px; }
+.meter { display: flex; align-items: center; gap: 8px; font-family: var(--disp); font-size: 10.5px; letter-spacing: 2.2px; color: var(--frost); }
+.meter .lbl { width: 46px; text-align: right; opacity: 0.85; }
+.bar {
+  width: 120px; height: 6px; position: relative; overflow: hidden; border-radius: 1px;
+  background: rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+.bar > i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--amber); transition: width 0.12s linear; }
+.bar.cond > i { background: var(--ok); }
+.bar.cond.low > i { background: var(--danger); }
+/* the Sweep's margin: quiet frost, warming only when they're close */
+.bar.sweep > i { background: var(--frost); }
+.bar.sweep.low > i { background: var(--danger); }
+.pips { display: flex; gap: 4px; }
+.pips i { width: 20px; height: 6px; background: rgba(255, 255, 255, 0.10); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07); transform: skewX(-14deg); }
+.pips i.on { background: var(--amber); box-shadow: 0 0 8px rgba(255, 180, 84, 0.55); }
+/* grace armed (the zone's cover): the lit pips lift a shade — no label */
+#meters.grace .pips i.on { background: #ffe9c2; box-shadow: 0 0 11px rgba(255, 225, 170, 0.8); }
+#boostBar.firing > i { background: #ffd8a0; }
+/* the charm rail: the build worn on the dash (HUD tier "everything") —
+ * small plates, lit while a souvenir holds a charge, a flash when one fires */
+#charmRail { left: 26px; bottom: 112px; display: flex; flex-wrap: wrap; gap: 4px; max-width: 46vw; align-items: flex-end; }
+.charm {
+  font-family: var(--disp); font-size: 10px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--frost); padding: 3px 7px 2px; border: 1px solid rgba(143, 181, 172, 0.35); border-radius: 2px;
+  background: rgba(8, 12, 11, 0.55); white-space: nowrap;
+}
+.charm i { font-style: normal; color: var(--amber); margin-left: 5px; font-family: var(--type); font-size: 10px; }
+.charm.part { color: #a9b6c9; border-color: rgba(169, 182, 201, 0.3); }
+.charm.lit { border-color: var(--amber); color: #ffe9c2; box-shadow: 0 0 8px rgba(255, 180, 84, 0.35); }
+.charm.fired { animation: charm-fire 0.9s ease-out both; }
+@keyframes charm-fire { 0% { background: var(--amber); color: #241703; } 100% { background: rgba(8, 12, 11, 0.55); color: var(--frost); } }
+
+/* ------------------------------------------- waystation & summary: PAPER */
+#waystation .sheet, #summary .sheet { width: min(860px, calc(100vw - 32px)); padding: 38px 32px 24px; }
+.ws-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 4px; }
+.ws-head h2 { font-size: 30px; letter-spacing: 1.5px; text-transform: uppercase; line-height: 1; margin-top: 7px; }
+.ws-stats { display: flex; gap: 20px; font-family: var(--type); font-size: 11px; letter-spacing: 0.6px; color: var(--ink-faint); text-transform: uppercase; white-space: nowrap; }
+.ws-stats b { color: var(--ink); font-size: 13px; margin-left: 5px; font-weight: 700; }
+.ws-rule { height: 0; border-bottom: 2px solid rgba(168, 64, 47, 0.55); margin: 10px 0 14px; }
+.ws-note {
+  font-family: var(--prose); font-style: italic; font-size: 14px; color: var(--ink-soft);
+  margin: 0 0 16px; padding: 2px 0 2px 14px; border-left: 3px solid rgba(168, 64, 47, 0.45);
+}
+.stage-hint { font-family: var(--prose); font-style: italic; font-size: 12.5px; color: var(--ink-faint); margin: 2px 0 10px; }
+
+/* route cards: roadbook frames — a tulip diagram in ink, the promise beside it */
+.routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+/* the Cartographer's Pen deals a FOURTH road: it joins the row instead of
+ * dropping under it (owner) — the grid packs to the count, the cards slim */
+@media (min-width: 720px) {
+  .routes:has(> :nth-child(4)) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .routes:has(> :nth-child(4)) .route { gap: 8px; padding: 11px 10px 9px; }
+  .routes:has(> :nth-child(4)) .route .tulip { flex: 0 0 30px; }
+  .routes:has(> :nth-child(4)) .route .tulip svg { width: 30px; height: 47px; }
+  .routes:has(> :nth-child(4)) .route .name { font-size: 17px; }
+}
+.route {
+  text-align: left; padding: 13px 14px 11px;
+  background: rgba(255, 252, 244, 0.45); border: 1px solid rgba(43, 36, 24, 0.4); border-radius: 2px;
+  display: flex; gap: 12px; min-height: 138px; position: relative; color: var(--ink);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+.route:hover { border-color: var(--ink); background: rgba(255, 252, 244, 0.8); box-shadow: 0 3px 14px rgba(43, 36, 24, 0.15); }
+.route .tulip { flex: 0 0 40px; color: var(--ink); opacity: 0.85; padding-top: 2px; }
+.route .tulip svg { display: block; width: 40px; height: 62px; }
+.r-body { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
+.route .tag { font-family: var(--type); font-weight: 700; font-size: 10px; letter-spacing: 1.8px; color: var(--stamp); }
+.route .suits { color: var(--pine-ink); font-size: 11px; }   /* one quiet marker: the build would enjoy this road */
+.route .name { font-family: var(--disp); font-size: 20px; font-weight: 700; color: var(--ink); letter-spacing: 0.4px; line-height: 1; }
+.route .desc { font-size: 12.5px; color: var(--ink-soft); line-height: 1.45; flex: 1; }
+.route .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-family: var(--type); font-size: 10.5px; letter-spacing: 0.4px; color: var(--ink-faint); }
+/* the four danger dots hold their line: a long meta ("rare pick likelier")
+ * used to squeeze the span until the fourth dot dropped down (owner) —
+ * the words wrap, the dots never do */
+.route .danger { white-space: nowrap; flex: 0 0 auto; }
+.route .danger i { display: inline-block; width: 7px; height: 7px; margin-left: 3px; border: 1px solid rgba(168, 64, 47, 0.5); border-radius: 50%; }
+.route .danger i.on { background: var(--stamp); border-color: var(--stamp); }
+.ws-foot { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+.ws-foot .ws-stats { text-transform: none; }
+
+/* the summary grid: typewritten figures on the page */
+.sum-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 22px; margin: 12px 0 16px; }
+.sum-grid div { font-family: var(--type); font-size: 10.5px; letter-spacing: 1px; color: var(--ink-faint); text-transform: uppercase; }
+.sum-grid b { display: block; font-family: var(--disp); font-size: 24px; color: var(--ink); letter-spacing: 0.5px; margin-top: 2px; }
+/* the travel diary: what this journey actually saw. Full width and set
+ * as prose, because it is the one part of a summary meant to be READ
+ * rather than scanned — a landmark is a sentence, not a statistic. */
+.sum-seen { margin: -6px 0 20px; text-align: left; }
+.sum-seen h4 {
+  font-family: var(--type); font-size: 10.5px; letter-spacing: 2px; color: var(--ink-faint);
+  text-transform: uppercase; margin: 14px 0 8px; font-weight: 700;
+}
+.sum-seen ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.sum-seen li { font-family: var(--prose); font-size: 15px; color: var(--ink); }
+.sum-seen li span { color: var(--ink-faint); font-style: italic; }
+.sum-seen .more { font-family: var(--prose); font-style: italic; font-size: 13px; color: var(--ink-faint); margin-top: 5px; }
+#btnResume { margin-top: 10px; }
+
+/* the build panel: a key to peek at the rules (B). Never modal, never paper —
+ * it floats over the driving, so it stays glass-dark. */
+#buildPanel {
+  position: fixed; right: 14px; top: 64px; width: 300px; z-index: 40; display: none;
+  background: rgba(11, 15, 13, 0.92); border: 1px solid var(--edge); border-radius: 4px;
+  padding: 14px 16px 12px;
+}
+#buildPanel.on { display: block; }
+#buildPanel .bp-head { font-family: var(--disp); font-size: 12px; letter-spacing: 2.4px; color: var(--amber); margin-bottom: 8px; }
+#buildPanel .bp-head span { color: #7fd9a6; }
+#bpList { display: grid; gap: 3px; margin-bottom: 10px; }
+#bpList div { font-size: 12.5px; color: var(--white); display: flex; justify-content: space-between; }
+#bpList div i { font-style: normal; color: var(--faded); font-family: var(--type); font-size: 11px; }
+#bpList div.part { color: #a9b6c9; }
+#bpList .none { color: var(--faded); }
+#bpMods { font-family: var(--type); font-size: 10.5px; letter-spacing: 0.3px; color: var(--frost); line-height: 1.7; margin-bottom: 8px; }
+#bpLog { font-size: 11.5px; color: var(--faded); border-top: 1px solid var(--edge); padding-top: 6px; min-height: 14px; }
+#buildPanel .bp-hint { font-family: var(--type); font-size: 9px; letter-spacing: 1.2px; color: var(--faded); margin-top: 8px; }
+/* the journey, drawn as the line it was */
+#sumMap { display: block; width: 100%; height: 180px; margin: 10px 0 2px; }
+/* the spec sheet: the build's numbers against stock, typewritten */
+.ws-numbers {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr)); gap: 4px 16px;
+  margin-top: 8px; font-family: var(--type); font-size: 9.5px; letter-spacing: 0.6px;
+  color: var(--ink-faint); text-transform: uppercase;
+}
+.ws-numbers span { display: flex; justify-content: space-between; gap: 6px; white-space: nowrap; }
+.ws-numbers span b { color: var(--ink); font-weight: 700; }
+.ws-numbers span.stock b { color: var(--ink-faint); font-weight: 400; }
+/* the crew's album: this run's cinematic stills on the summary page */
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.album figure { margin: 0; cursor: zoom-in; }
+.album img { display: block; width: 100%; border: 1px solid rgba(43, 36, 24, 0.5); border-radius: 2px; }
+.album figcaption { font-family: var(--type); font-size: 9.5px; letter-spacing: 1px; color: var(--ink-faint); text-transform: uppercase; margin-top: 3px; }
+/* the lifetime gallery: bests up top, postcards as prose below */
+.gal-best { display: flex; gap: 24px; flex-wrap: wrap; font-family: var(--type); font-size: 10.5px; letter-spacing: 1px; color: var(--ink-faint); text-transform: uppercase; margin-bottom: 14px; }
+.gal-best b { color: var(--ink); font-family: var(--disp); font-size: 16px; margin-left: 5px; }
+.gal-list { max-height: 46vh; overflow-y: auto; padding-right: 6px; }
+.gal-list h4 { margin-top: 12px; }
+.gal-list .none { color: var(--ink-faint); font-family: var(--prose); font-style: italic; font-size: 13.5px; }
+/* the marshals' book: chapters as headings with a tally, marks as lines.
+ * Earned marks in full ink with their record under them; the ones still
+ * to earn in faint ink; moments and jokes carry a small seal. */
+.ach-sheet { width: min(700px, calc(100vw - 32px)); }
+.ach-list { max-height: 58vh; }
+.ach-list h4 { display: flex; justify-content: space-between; align-items: baseline; }
+.ach-list h4 em { font-style: normal; font-weight: 400; color: var(--ink-faint); letter-spacing: 1px; }
+.ach-list ul { gap: 4px; }
+.ach-list li { font-size: 14px; line-height: 1.3; display: grid; grid-template-columns: 190px 1fr; column-gap: 12px; align-items: baseline; }
+.ach-list li b { font-family: var(--disp); font-weight: 700; font-size: 16px; letter-spacing: 0.3px; }
+.ach-list li span { font-style: normal; color: var(--ink-soft); }
+.ach-list li small { grid-column: 2; font-family: var(--type); font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-faint); }
+.ach-list li.todo b, .ach-list li.todo span { color: var(--ink-faint); }
+.ach-list li.done b::before { content: "✓ "; color: var(--pine-ink); }
+.ach-list li.moment b::after, .ach-list li.funny b::after {
+  content: "moment"; font-family: var(--type); font-weight: 700; font-size: 8.5px; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--stamp); border: 1px solid var(--stamp); border-radius: 2px; padding: 1px 4px 0; margin-left: 7px; vertical-align: 2px; opacity: 0.8;
+}
+.ach-list li.funny b::after { content: "in jest"; }
+.ach-list li.hidden { grid-template-columns: 1fr; }
+.ach-list li.hidden span { font-style: italic; color: var(--ink-faint); font-size: 13px; }
+.ach-earned li b { font-family: var(--disp); font-weight: 700; font-size: 16px; }
+@media (max-width: 560px) { .ach-list li { grid-template-columns: 1fr; } .ach-list li small { grid-column: 1; } }
+/* the unlock notice over the drive: a typewritten line, bottom left,
+ * above the meters, on for a few seconds and gone */
+#achToast {
+  left: 26px; bottom: 182px; max-width: 30vw; opacity: 0; transform: translateY(6px);
+  transition: opacity 0.4s, transform 0.4s; pointer-events: none;
+  background: rgba(10, 15, 13, 0.62); border-left: 3px solid var(--amber); padding: 7px 12px 7px 10px; border-radius: 2px;
+}
+#achToast.on { opacity: 1; transform: none; }
+#achToast i { display: block; font-style: normal; font-family: var(--type); font-weight: 700; font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); }
+#achToast b { display: block; font-family: var(--disp); font-size: 20px; font-weight: 700; color: var(--white); letter-spacing: 0.5px; line-height: 1.1; margin-top: 1px; }
+#achToast span { display: block; font-family: var(--body); font-size: 12.5px; color: rgba(255, 255, 255, 0.78); margin-top: 2px; }
+body.zen #achToast, body.basics #achToast { bottom: 150px; }
+
+/* cards (souvenirs / parts / service): specimens on the page, each sealed
+ * with its rarity's inked dot */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.card {
+  text-align: left; padding: 13px 15px 11px;
+  background: rgba(255, 252, 244, 0.45); border: 1px solid rgba(43, 36, 24, 0.4); border-radius: 2px;
+  display: flex; flex-direction: column; gap: 6px; min-height: 160px; position: relative; color: var(--ink);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+.card:hover { border-color: var(--ink); background: rgba(255, 252, 244, 0.8); box-shadow: 0 3px 14px rgba(43, 36, 24, 0.15); }
+.card .kind { font-family: var(--type); font-weight: 700; font-size: 10px; letter-spacing: 1.6px; color: var(--ink-faint); }
+.card .kind::before {
+  content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor; margin-right: 6px; vertical-align: -0.5px; opacity: 0.85;
+}
+/* four different inks: odd's teal and exotic's old teal were near twins,
+ * so every shelf read as exotic — now the ladder is pine, amber, carmine,
+ * violet, and only the top two tiers get the heavier seal */
+.card .kind.odd { color: #3d6f66; } .card .kind.rare { color: #a8641c; } .card .kind.fabled { color: #7d4a8a; }
+.card .kind.exotic { color: #9c3247; }
+.card .kind.exotic::before, .card .kind.fabled::before { box-shadow: 0 0 0 2px currentColor inset, 0 0 0 3.5px rgba(255, 252, 244, 0.9) inset; }
+.card .kind.part { color: #55677a; } .card .kind.service { color: var(--pine-ink); }
+.card .syn { color: var(--pine-ink); font-size: 12px; }   /* synergy: it touches something owned */
+.card .name { font-family: var(--disp); font-size: 19px; font-weight: 700; color: var(--ink); letter-spacing: 0.4px; line-height: 1.05; }
+.card .rule { font-size: 12.5px; color: var(--ink-soft); line-height: 1.45; flex: 1; }
+.card .blurb { font-family: var(--prose); font-size: 12px; color: var(--ink-faint); font-style: italic; line-height: 1.45; }
+.card.picked { border: 2px solid var(--stamp); padding: 12px 14px 10px; }
+.build-strip { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.build-strip .sv {
+  font-family: var(--type); font-weight: 700; font-size: 10.5px; letter-spacing: 0.4px; color: var(--ink);
+  background: rgba(255, 252, 244, 0.5); border: 1px solid rgba(43, 36, 24, 0.45); border-radius: 2px;
+  padding: 4px 8px; cursor: default;
+}
+.build-strip .sv.part { color: var(--ink-faint); }
+.build-strip .sv:hover { border-color: var(--ink); }
+.build-strip .none { font-family: var(--prose); font-style: italic; font-size: 12px; color: var(--ink-faint); }
+
+/* trigger toast (souvenir fired, pickup taken) */
+#toast {
+  right: 28px; top: 96px; text-align: right; font-family: var(--type); font-weight: 700;
+  font-size: 11.5px; letter-spacing: 1.6px; color: var(--amber); text-transform: uppercase;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); opacity: 0; transition: opacity 0.35s;
+}
+#toast.on { opacity: 1; }
+
+/* --------------------------------------------------- pause + settings
+ * Six tabs across the top, one panel at a time (owner: the thirty-row
+ * scroll "blows"). The panel keeps a fixed height so the sheet never
+ * jumps when you change tab; the actions stay pinned at the bottom. */
+#pause .sheet { width: min(600px, calc(100vw - 32px)); padding-bottom: 22px; }
+.tabs { display: flex; gap: 3px; flex-wrap: wrap; margin: 2px 0 4px; padding-bottom: 8px; border-bottom: 1px solid var(--edge); }
+.tabs button {
+  font-family: var(--disp); font-size: 12.5px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase;
+  padding: 7px 12px; background: transparent; border: 1px solid transparent; border-radius: 2px; color: var(--faded);
+}
+.tabs button:hover { color: var(--text); }
+.tabs button.on { color: var(--amber); border-color: var(--edge-hi); background: rgba(255, 180, 84, 0.06); }
+.set-panels { min-height: 318px; }
+.set-group { display: none; }
+.set-group.on { display: block; }
+.set-head {
+  font-family: var(--type); font-weight: 700; font-size: 10px; letter-spacing: 2.4px;
+  text-transform: uppercase; color: var(--amber-deep); margin: 16px 0 0;
+  padding-bottom: 4px; border-bottom: 1px solid var(--edge);
+}
+.set-group > .set-head:first-child { margin-top: 6px; }
+.setrow { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid rgba(43, 59, 51, 0.55); }
+.setrow:last-of-type { border-bottom: 0; }
+.setrow .lbl { font-size: 13px; color: var(--text); }
+.setrow .lbl small { display: block; font-size: 11px; color: var(--faded); }
+.seg { display: flex; gap: 3px; flex-shrink: 0; }
+.seg button {
+  font-family: var(--disp); font-size: 11.5px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase;
+  padding: 6px 11px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--edge); border-radius: 2px; color: var(--faded);
+}
+.seg button:hover { border-color: var(--edge-hi); color: var(--text); }
+.seg-q button { padding: 6px 8px; letter-spacing: 1px; }   /* five tiers on one row */
+.seg button.on { background: var(--amber); border-color: var(--amber); color: #241703; }
+.pause-actions { display: flex; gap: 10px; margin-top: 18px; }
+.pause-actions .btn { flex: 1; }
+.vols { display: flex; gap: 8px; align-items: center; }
+.vols input { width: 72px; accent-color: #ffb454; }
+.keybinds { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; font-size: 11px; color: var(--faded); }
+.kbrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.kb {
+  font: 700 10px/1 var(--type); letter-spacing: 0.6px; padding: 4px 8px; min-width: 56px;
+  background: var(--dash-2); border: 1px solid var(--edge); border-bottom-width: 3px;
+  border-radius: 3px; color: var(--white); cursor: pointer;
+}
+.kb.listening { border-color: var(--amber); color: var(--amber); }
+.kb-reset { min-width: 0; color: var(--faded); }
+
+/* body-state hooks (the game toggles these; the names are load-bearing) */
+body.zen #speedo, body.zen #meters, body.zen #charmRail, body.basics #charmRail { display: none !important; }
+body.attract .hud { display: none !important; }
+body.attract #noteStrip { display: flex !important; opacity: 0.92; left: auto; right: 28px; top: 20px; transform: none; }
+/* a small window has no room for the chips beside the title */
+@media (max-width: 980px), (max-height: 600px) { body.attract #noteStrip { display: none !important; } }
+.ks-pad { display: none; }
+body.pad .ks-kbd { display: none; }
+body.pad .ks-pad { display: inline; }
+body.hud-small .hud { zoom: 0.85; }
+body.hud-large .hud { zoom: 1.22; }
+body.sub-large #subtitle { font-size: 26px; }
+body.cb .syn, body.cb .suits { color: #2a6fb0; }
+body.cb #condBar.low > i { background: #e69f00; }
+body.cb #sweepBar.low > i { background: #e69f00; }
+
+#debugHud {
+  left: 12px; top: 12px; font-family: "Consolas", monospace; font-size: 11px;
+  color: #9fe0c0; background: rgba(6, 9, 8, 0.65); padding: 8px 10px;
+  display: none; white-space: pre; line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<!-- the crest mark, defined once: the pace-note glyph for "over crest" -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="crestmark" viewBox="0 0 120 44">
+    <path d="M44,35 H80" fill="none" stroke="currentColor" stroke-width="2.4"
+          stroke-linecap="round" stroke-dasharray="1.5 7" opacity="0.55"/>
+    <path d="M6,35 H32 C42,35 46,9 60,9 C74,9 78,35 88,35 H114"
+          fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<!-- HUD -->
+<div class="hud" id="noteStrip"></div>
+<div class="hud" id="subtitle"></div>
+<div id="buildPanel">
+  <div class="bp-head">THE BUILD<span id="bpSpec"></span></div>
+  <div id="bpList"></div>
+  <div id="bpMods"></div>
+  <div id="bpLog"></div>
+  <div class="bp-hint">B CLOSES · TRIGGER COUNTS SINCE THE START</div>
+</div>
+<div class="hud" id="hudMsg"></div>
+<div class="hud" id="speedo">
+  <div id="speedVal">0</div>
+  <div id="speedUnit">KM/H</div>
+  <div id="gearVal"></div>
+  <div id="clockHud"></div>
+</div>
+<div class="hud" id="debugHud"></div>
+<div class="hud" id="toast"></div>
+<div class="hud" id="meters">
+  <div class="meter"><span class="lbl">FLOW</span><div class="pips" id="flowPips"><i></i><i></i><i></i><i></i><i></i></div></div>
+  <div class="meter"><span class="lbl">BOOST</span><div class="bar" id="boostBar"><i></i></div></div>
+  <div class="meter"><span class="lbl">CAR</span><div class="bar cond" id="condBar"><i></i></div></div>
+  <div class="meter" id="sweepRow" style="display:none"><span class="lbl">SWEEP</span><div class="bar sweep" id="sweepBar"><i></i></div></div>
+</div>
+<div class="hud" id="charmRail"></div>
+
+<!-- screens -->
+<div class="screen on" id="loading">
+  <div class="sheet night">
+    <svg class="crest small"><use href="#crestmark"/></svg>
+    <div id="loadMarque">OVERCREST</div>
+    <div class="roadline"></div>
+    <div id="loadStatus">Laying the road…</div>
+  </div>
+</div>
+<script>
+/* honest progress: this line runs before the modules arrive — the load's
+ * first stage names itself instead of sitting on one caption */
+document.getElementById("loadStatus").textContent = "fetching the engine (code, not assets)…";
+</script>
+
+<div class="screen" id="title">
+  <div class="t-live"><i></i><span id="titleLive">the road drives itself</span></div>
+  <div class="t-mark">
+    <div class="t-name">
+      <div class="plate-sticker">An endless rally roguelike</div>
+      <div class="marque">Over<em>crest</em></div>
+    </div>
+    <!-- the crest glyph, at road scale: the row's hump -->
+    <svg class="t-hump" viewBox="0 0 132 44" aria-hidden="true">
+      <path d="M0,42.5 H34 C46,42.5 51,9 66,9 C81,9 86,42.5 98,42.5 H132"
+            fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div class="t-dashwrap"></div>
+  </div>
+  <div class="t-side">
+    <div class="timecard">
+      <div class="tc-head"><span class="tc-title">Time card</span><span class="stamp">start control</span></div>
+      <div class="tc-row"><label for="seedInput">Seed</label><input id="seedInput" placeholder="leave blank for a new road" spellcheck="false" autocomplete="off"></div>
+      <div class="tc-foot">the same word is the same road, any day</div>
+    </div>
+    <div class="t-modes">
+      <button class="btn primary t-mode" id="btnDrive">Drive</button>
+      <button class="btn primary t-mode" id="btnSweep" title="A sweep car runs the stage behind you. Stay ahead of it.">The Sweep</button>
+    </div>
+    <button class="btn wide" id="btnResume" style="display:none">Resume journey</button>
+    <div class="t-row">
+      <button class="btn small" id="btnPostcards" style="display:none">Postcards</button>
+      <button class="btn small" id="btnAchievements" style="display:none">Achievements</button>
+    </div>
+  </div>
+  <div class="keysheet">
+    <span class="ks-kbd"><b>W</b>/<b>↑</b> throttle &nbsp; <b>S</b>/<b>↓</b> brake &nbsp; <b>A</b> <b>D</b>/<b>←</b> <b>→</b> steer &nbsp;
+    <b>Space</b> handbrake &nbsp; <b>Shift</b> boost &nbsp; <b>P</b> pause<br>
+    <span class="ks-alt">or plug in a controller: stick to steer, triggers to drive</span></span>
+    <span class="ks-pad"><b>RT</b> throttle &nbsp; <b>LT</b> brake &nbsp; <b>stick</b> steer &nbsp;
+    <b>A</b>/<b>X</b> handbrake &nbsp; <b>RB</b> boost &nbsp; <b>Start</b> pause<br>
+    <span class="ks-alt">controller connected. the keyboard still works</span></span>
+  </div>
+  <div class="t-credit">quinnsavitt.com</div>
+</div>
+
+<div class="screen" id="waystation">
+  <div class="sheet paper">
+    <div class="ws-head">
+      <div><span class="stamp" id="wsOver">Waystation 1</span><h2 id="wsName">Sawmill Service</h2></div>
+      <div class="ws-stats">
+        <span>Time<b id="wsTime">–</b></span>
+        <span>Distance<b id="wsDist">0.0 km</b></span>
+        <span>Score<b id="wsScore">0</b></span>
+        <span>Car<b id="wsCond">100%</b></span>
+        <span>Saves<b id="wsSaves">0</b></span>
+        <span id="wsSweepStat" style="display:none">Sweep<b id="wsSweep">76%</b></span>
+      </div>
+    </div>
+    <div class="ws-rule"></div>
+    <div class="ws-note" id="wsNote">Quick service. The mechanic tightens what rattled loose.</div>
+    <div id="wsStageCards">
+      <div class="overline" style="margin-bottom:4px">Take one thing</div>
+      <div class="stage-hint">Souvenirs change the rules. Parts change the numbers. Pick, then choose the road.</div>
+      <div class="cards" id="wsCards"></div>
+      <button class="btn quiet" id="btnNoCard" style="margin:-8px 0 14px">Take nothing. Travel light.</button>
+    </div>
+    <div id="wsStageRoutes" style="display:none">
+      <div class="overline" style="margin-bottom:8px">Where next</div>
+      <div class="routes" id="routeCards"></div>
+    </div>
+    <div class="overline" style="margin-top:16px;font-size:10px">Your car</div>
+    <div class="build-strip" id="wsBuild"></div>
+    <div class="ws-numbers" id="wsNumbers"></div>
+    <div class="ws-foot">
+      <button class="btn quiet" id="btnEndHere">End the journey here</button>
+      <span class="ws-stats"><span>Seed<b id="wsSeed"></b></span></span>
+    </div>
+  </div>
+</div>
+
+<!-- the browser is a hostile host (Addendum II): these three surfaces are the
+     game surviving it: a display hiccup, a wrong device, a real crash -->
+<div id="letterbox"><i></i><i></i></div>
+<div class="hud" id="glNotice">display hiccup, recovering…</div>
+
+<div class="screen" id="wrongDevice">
+  <div class="sheet night" style="max-width:440px;text-align:center">
+    <div class="overline">Overcrest</div>
+    <h2 style="font-size:24px;letter-spacing:1.5px;margin:10px 0 12px">This road needs pedals</h2>
+    <p style="font-size:14px;line-height:1.6;color:var(--text);margin:0 0 8px">
+      Overcrest is a driving game: keyboard or controller, real throttle, real brakes.
+      A touch screen alone can't hold the wheel.</p>
+    <p style="font-size:13px;color:var(--faded);margin:0 0 18px">
+      Come back on a computer, or pair a keyboard or gamepad. The road will wait.</p>
+    <button class="btn primary wide" id="btnDeviceGo">I have a keyboard or a pad</button>
+  </div>
+</div>
+
+<div class="screen" id="catastrophe">
+  <div class="sheet night" style="max-width:560px">
+    <div class="overline">Overcrest</div>
+    <h2 style="font-size:24px;letter-spacing:1.5px;margin:10px 0 12px">Something broke, and it wasn't your driving</h2>
+    <p style="font-size:14px;line-height:1.6;margin:0 0 6px">
+      The game hit an error it couldn't recover from. Sorry, that's on us.</p>
+    <p style="font-size:13px;color:var(--faded);margin:0 0 14px" id="catSave"></p>
+    <pre id="catDetail"></pre>
+    <div class="pause-actions" style="margin-top:14px">
+      <button class="btn primary" id="btnCatReload">Reload</button>
+      <button class="btn quiet" id="btnCatCopy">Copy the error</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="pause">
+  <div class="sheet night">
+    <div class="overline">Paused</div>
+    <h2 style="font-size:26px;letter-spacing:2px;text-transform:uppercase;margin:6px 0 12px">Engine idling</h2>
+    <div class="tabs" id="setTabs">
+      <button class="on" data-tab="codriver">Codriver</button>
+      <button data-tab="sound">Sound</button>
+      <button data-tab="camera">Camera</button>
+      <button data-tab="driving">Driving</button>
+      <button data-tab="picture">Picture</button>
+      <button data-tab="controls">Controls</button>
+    </div>
+    <div class="set-panels">
+    <div class="set-group on" data-tab="codriver">
+    <div class="set-head">The codriver</div>
+    <div class="setrow"><div class="lbl">Timing<small>how early the calls come</small></div>
+      <div class="seg" data-set="timing"><button data-v="early">Early</button><button data-v="normal">Normal</button><button data-v="late">Late</button></div></div>
+    <div class="setrow"><div class="lbl">Voice</div>
+      <div class="seg" data-set="voice"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+    <div class="setrow"><div class="lbl">Verbosity<small>essential: corners &amp; hazards · minimal: hazards only</small></div>
+      <div class="seg" data-set="verbosity"><button data-v="full">Full</button><button data-v="essential">Essential</button><button data-v="minimal">Minimal</button></div></div>
+    <div class="setrow"><div class="lbl">Subtitles</div>
+      <div class="seg" data-set="subSize"><button data-v="normal">Normal</button><button data-v="large">Large</button></div></div>
+    <div class="setrow"><div class="lbl">Call colours<small>safe swaps red–green for orange–blue</small></div>
+      <div class="seg" data-set="colour"><button data-v="standard">Standard</button><button data-v="safe">Safe</button></div></div>
+    </div>
+    <div class="set-group" data-tab="sound">
+    <div class="set-head">Sound</div>
+    <div class="setrow"><div class="lbl">Sound</div>
+      <div class="seg" data-set="sound"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+    <div class="setrow"><div class="lbl">Music<small>generative; it earns its place with your flow</small></div>
+      <div class="seg" data-set="music"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+    <div class="setrow"><div class="lbl">Volumes<small>sound · voice · music</small></div>
+      <div class="vols">
+        <input type="range" class="rng" data-set="volMaster" min="0" max="1" step="0.05">
+        <input type="range" class="rng" data-set="volVoice" min="0" max="1" step="0.05">
+        <input type="range" class="rng" data-set="volMusic" min="0" max="1" step="0.05">
+      </div></div>
+    </div>
+    <div class="set-group" data-tab="camera">
+    <div class="set-head">The camera</div>
+    <div class="setrow"><div class="lbl">Motion<small>landing dips and impact shake</small></div>
+      <div class="seg" data-set="motion"><button data-v="full">Full</button><button data-v="reduced">Reduced</button></div></div>
+    <div class="setrow"><div class="lbl">Distance</div>
+      <div class="seg" data-set="camDist"><button data-v="close">Close</button><button data-v="standard">Standard</button><button data-v="far">Far</button></div></div>
+    <div class="setrow"><div class="lbl">Speed FOV<small>capped keeps the lens calm at pace</small></div>
+      <div class="seg" data-set="fovCap"><button data-v="off">Full</button><button data-v="on">Capped</button></div></div>
+    <div class="setrow"><div class="lbl">Cinematic cuts<small>trackside cameras on safe straights, brows, borders, the roll</small></div>
+      <div class="seg" data-set="camCuts"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+    </div>
+    <div class="set-group" data-tab="driving">
+    <div class="set-head">Driving help</div>
+    <div class="setrow"><div class="lbl">Steering stabiliser<small>how much the car settles itself</small></div>
+      <div class="seg" data-set="stabiliser"><button data-v="light">Light</button><button data-v="standard">Standard</button><button data-v="strong">Strong</button></div></div>
+    <div class="setrow"><div class="lbl">Braking help</div>
+      <div class="seg" data-set="brakehelp"><button data-v="off">Off</button><button data-v="mild">Mild</button></div></div>
+    <div class="setrow"><div class="lbl">Extra traction<small>more grip, kinder verges</small></div>
+      <div class="seg" data-set="traction"><button data-v="off">Off</button><button data-v="extra">On</button></div></div>
+    </div>
+    <div class="set-group" data-tab="picture">
+    <div class="set-head">The picture</div>
+    <div class="setrow"><div class="lbl">HUD<small>everything wears the build on the dash; basics keeps the instruments; zen keeps only the calls and the road</small></div>
+      <div class="seg" data-set="hud"><button data-v="everything">Everything</button><button data-v="basics">Basics</button><button data-v="zen">Zen</button></div></div>
+    <div class="setrow"><div class="lbl">HUD size</div>
+      <div class="seg" data-set="hudSize"><button data-v="small">Small</button><button data-v="normal">Normal</button><button data-v="large">Large</button></div></div>
+    <div class="setrow"><div class="lbl">Quality<small>auto finds this machine's level, and steps back up when it can</small></div>
+      <div class="seg seg-q" data-set="quality"><button data-v="auto">Auto</button><button data-v="eco">Eco</button><button data-v="balanced">Balanced</button><button data-v="high">High</button><button data-v="ultra">Ultra</button></div></div>
+    <div class="setrow"><div class="lbl">Clock<small>the world's time on the dash</small></div>
+      <div class="seg" data-set="clock"><button data-v="ws">Waystations</button><button data-v="always">Always</button></div></div>
+    </div>
+    <div class="set-group" data-tab="controls">
+    <div class="set-head">The pad</div>
+    <div class="setrow"><div class="lbl">Deadzone &amp; curve<small>curve: left is sharp, right is gentle</small></div>
+      <div class="vols">
+        <input type="range" class="rng" data-set="padDead" min="0.02" max="0.3" step="0.01">
+        <input type="range" class="rng" data-set="padCurve" min="1" max="2.4" step="0.1">
+      </div></div>
+    <div class="setrow"><div class="lbl">Haptics<small>landings and impacts, driving only</small></div>
+      <div class="seg" data-set="haptics"><button data-v="on">On</button><button data-v="off">Off</button></div></div>
+    <div class="set-head">The keys</div>
+    <div class="setrow"><div class="lbl">Controls<small>click a key, then press the new one. Arrows &amp; Esc always work</small></div>
+      <div id="keybinds" class="keybinds"></div></div>
+    </div>
+    </div>
+    <div class="pause-actions">
+      <button class="btn primary" id="btnResumeGame">Drive on</button>
+      <button class="btn quiet" id="btnQuit">End the journey</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="summary">
+  <div class="sheet paper">
+    <span class="stamp" id="sumOver">The journey ends</span>
+    <h2 style="font-size:32px;letter-spacing:1.5px;text-transform:uppercase;margin-top:10px" id="sumTitle">Wrecked</h2>
+    <canvas id="sumMap" width="760" height="190"></canvas>
+    <div class="sum-grid" id="sumGrid"></div>
+    <div class="sum-seen" id="sumSeen"></div>
+    <div class="sum-seen" id="sumAlbum"></div>
+    <div class="row">
+      <button class="btn primary" id="btnAgain">New journey</button>
+      <button class="btn" id="btnSameSeed">Same seed</button>
+      <button class="btn" id="btnShare">Copy link</button>
+      <button class="btn" id="btnCard">Save card</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="gallery">
+  <div class="sheet paper">
+    <span class="stamp">The travel diary</span>
+    <h2 style="font-size:28px;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 12px">Postcards</h2>
+    <div class="gal-best" id="galBest"></div>
+    <div class="gal-list sum-seen" id="galList"></div>
+    <div class="row"><button class="btn primary" id="btnGalClose">Back</button></div>
+  </div>
+</div>
+
+<!-- the marshals' book: every mark a journey can earn, the moments and
+     the jokes named only once they have happened -->
+<div class="screen" id="achievements">
+  <div class="sheet paper ach-sheet">
+    <span class="stamp">The marshals' book</span>
+    <h2 style="font-size:28px;letter-spacing:1.5px;text-transform:uppercase;margin:10px 0 12px">Achievements</h2>
+    <div class="gal-best" id="achCount"></div>
+    <div class="gal-list sum-seen ach-list" id="achList"></div>
+    <div class="row"><button class="btn primary" id="btnAchClose">Back</button></div>
+  </div>
+</div>
+
+<!-- the unlock notice: one line, bottom left, over the drive -->
+<div class="hud" id="achToast"></div>
+
+<script type="importmap">
+{ "imports": { "three": "./lib/three.module.min.js" } }
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

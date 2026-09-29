@@ -1,6 +1,8 @@
 Thumbs.db
 .DS_Store
+docs/overcrest/BIBLE.md
 .dist
+*.md
 .tmp
 .sass-cache
 npm-debug.log
