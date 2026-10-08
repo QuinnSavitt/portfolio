@@ -48,7 +48,7 @@
         {
             id: "archipelago",
             title: "Archipelago",
-            tagline: "A programming language you build as a civilization. Roads carry values, islands are functions, and 170 puzzles run from laying one road to an ALU made of NAND gates.",
+            tagline: "A programming language you build as a civilization. Roads carry values, islands are functions, and 165 puzzles run from laying one road to an ALU made of NAND gates.",
             icon: "tf-map2",
             url: "games/archipelago/index.html",
             daily: false,
