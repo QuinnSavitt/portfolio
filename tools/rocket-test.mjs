@@ -79,6 +79,7 @@ if (mode === "all" || mode === "gen") {
     }
     if (!day.par.ok) { fail(tag + " PAR FLIGHT FAILED even at the gentlest variant (" + day.par.outcome + ")"); }
     if (day.par.stats.time > 230) { fail(tag + " par flight " + day.par.stats.time.toFixed(0) + " s"); }
+    if (day.deadline > P.MAX_T - 15) { fail(tag + " deadline " + day.deadline + " s runs past the mission clock"); }
     if (!(day.fee > 0) || !(day.deadline > day.par.stats.time)) { fail(tag + " fee/deadline"); }
     if (D.violations(day, day.refBuild).length) { fail(tag + " reference breaks today's rules"); }
     // regenerate from scratch (bypassing the cache) and compare

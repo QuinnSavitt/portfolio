@@ -337,6 +337,7 @@ function twistText(day) {
 export function generateDay(index, fresh) {
   if (!fresh && cache.has(index)) { return cache.get(index); }
   let day = null, parSim = null, ref = null, cat = null;
+  let best = null;
   outer:
   for (let v = 0; v < 4; v++) {
     day = candidate(index, v);
@@ -347,9 +348,15 @@ export function generateDay(index, fresh) {
       if (!ref) { continue; }
       if (day.twistIds.includes("supplier")) { lockEngines(day, ref); }
       parSim = flyBuild(day, ref, PAR_SKILL);
-      if (parSim.success) { break outer; }
+      if (!parSim.success) { continue; }
+      if (!best || parSim.t < best.parSim.t) { best = { day, cat, ref, parSim }; }
+      // a flyable day the Flight Director needs too long for leaves a human
+      // no clock to spare: try the next, shorter variant instead
+      if (parSim.t <= parLimit(day)) { break outer; }
+      continue outer;
     }
   }
+  if (best) { ({ day, cat, ref, parSim } = best); }
 
   // economics from the par flight
   const hw = hardwareCost(ref || { stack: [] });
@@ -357,6 +364,8 @@ export function generateDay(index, fresh) {
   day.deadline = day.twistIds.includes("rush")
     ? Math.max(25, Math.round((t * 1.3 + 4) / 5) * 5)
     : Math.max(30, Math.round((t * 1.8 + 8) / 5) * 5);
+  // the schedule never runs past the mission clock
+  day.deadline = Math.min(day.deadline, MAX_T - 15);
   // the fee covers a sensible flight and leaves a margin worth fighting over
   const refundK = day.econ.refund != null ? day.econ.refund : REFUND;
   const parCost = hw * (1 - refundK * 0.8) + (parSim ? parSim.liquidBurned : 0) * FUEL_PRICE * day.econ.fuel;
@@ -386,6 +395,12 @@ export function generateDay(index, fresh) {
   }
   if (!fresh) { cache.set(index, day); }
   return day;
+}
+
+/* Longest par flight a day may publish with: a round trip gets a little
+ * more, and everything leaves a human well inside the mission clock. */
+function parLimit(day) {
+  return day.legs.length > 1 ? 210 : 180;
 }
 
 /* Single supplier: whatever engine the reference flies is the only one in

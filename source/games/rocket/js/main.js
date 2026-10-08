@@ -38,11 +38,13 @@ if (params.get("day")) {
 }
 const practice = dayIdx !== todayIdx;
 
-const day = generateDay(dayIdx);
+// the day is generated just after the loading screen paints (a hard day
+// can take a couple of seconds on a phone: its par flight is test-flown)
+let day = null;
 const audio = createAudio();
 let renderer = null, hangar = null;
 
-let build = pickInitialBuild();
+let build = null;
 let sim = null, bot = null;
 let raf = 0, lastNow = 0, acc = 0;
 let finishAt = 0, lastResult = null;
@@ -680,6 +682,15 @@ function bindControls() {
 // ------------------------------------------------------------------- go
 
 function init() {
+  $("loaderText").textContent = (practice ? "Preparing contract #" : "Preparing today's contract, #") + (dayIdx + 1) + "…";
+  // two frames: let the loading screen reach the glass before the heavy work
+  window.requestAnimationFrame(() => window.setTimeout(start, 30));
+}
+
+function start() {
+  day = generateDay(dayIdx);
+  build = pickInitialBuild();
+  $("loader").classList.remove("on");
   paintBrief();
   bindControls();
   $("btnBuild").addEventListener("click", openHangar);
